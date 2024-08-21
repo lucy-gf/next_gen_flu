@@ -1,2 +1,5 @@
 # next_gen_flu
-Reproducible flexible next-generation vaccien flu model
+
+(Work in progress)
+
+Reproducible flexible next-generation vaccine flu model
