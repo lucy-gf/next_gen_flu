@@ -1,4 +1,5 @@
 #### TRANSMISSION MODEL ####
+library(odin)
 
 infection_delays <- c(0.8, 1.8) 
 
@@ -107,12 +108,7 @@ incidence_VS <- function(
   return(output_y)
 }
 
-
-
-
-
-library(odin)
-
+#### ODIN MODEL ####
 flu_odin <- odin::odin({
   # Number of groups
   no_groups <- user()
