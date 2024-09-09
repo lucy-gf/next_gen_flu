@@ -75,15 +75,6 @@ fcn_vacc_prog <- function(target_ages, cov_input, none = F){
   output_list 
 }
 
-# vaccine programs:
-
-cov_main <- 0.5 # coverage level
-age_targeting <- 0:17
-
-vaccine_programs <- c(
-  fcn_vacc_prog(NA, 0, T),
-  fcn_vacc_prog(age_targeting, cov_main)
-)
 
 
 
