@@ -1,0 +1,237 @@
+Name,Type,CBR,CBR_indiv
+Burundi,Country/Area,27.163,0.027163
+Comoros,Country/Area,24.408,0.024408000000000003
+Djibouti,Country/Area,17.134,0.017134
+Eritrea,Country/Area,22.358,0.022358
+Ethiopia,Country/Area,26.63,0.026629999999999997
+Kenya,Country/Area,24.178,0.024178
+Madagascar,Country/Area,25.591,0.025591000000000003
+Malawi,Country/Area,26.475,0.026475000000000002
+Mauritius,Country/Area,8.854,0.008853999999999999
+Mayotte,Country/Area,28.274,0.028274
+Mozambique,Country/Area,29.93,0.02993
+Réunion,Country/Area,12.456,0.012456
+Rwanda,Country/Area,24.952,0.024952000000000002
+Seychelles,Country/Area,12.471,0.012471
+Somalia,Country/Area,37.34,0.037340000000000005
+South Sudan,Country/Area,22.589,0.022588999999999998
+Uganda,Country/Area,29.997,0.029997
+United Republic of Tanzania,Country/Area,30.477,0.030477
+Zambia,Country/Area,28.296,0.028295999999999998
+Zimbabwe,Country/Area,25.863,0.025863
+Angola,Country/Area,31.865,0.031865
+Cameroon,Country/Area,29.747,0.029747
+Central African Republic,Country/Area,36.504,0.036503999999999995
+Chad,Country/Area,35.58,0.03558
+Congo,Country/Area,25.33,0.02533
+Democratic Republic of the Congo,Country/Area,35.484,0.035484
+Equatorial Guinea,Country/Area,21.933,0.021933
+Gabon,Country/Area,21.152,0.021152
+Sao Tome and Principe,Country/Area,24.447,0.024447
+Algeria,Country/Area,15.943,0.015943
+Egypt,Country/Area,19.09,0.01909
+Libya,Country/Area,13.627,0.013627
+Morocco,Country/Area,13.878,0.013878
+Sudan,Country/Area,26.776,0.026776
+Tunisia,Country/Area,12.653,0.012653000000000001
+Western Sahara,Country/Area,12.532,0.012532
+Botswana,Country/Area,19.259,0.019259000000000002
+Eswatini,Country/Area,19.625,0.019625
+Lesotho,Country/Area,21.605,0.021605
+Namibia,Country/Area,22.379,0.022379000000000003
+South Africa,Country/Area,16.042,0.016042
+Benin,Country/Area,30.887,0.030887
+Burkina Faso,Country/Area,29.629,0.029629000000000003
+Cabo Verde,Country/Area,13.88,0.01388
+Côte d'Ivoire,Country/Area,29.49,0.02949
+Gambia,Country/Area,26.926,0.026926
+Ghana,Country/Area,23.22,0.023219999999999998
+Guinea,Country/Area,28.432,0.028432
+Guinea-Bissau,Country/Area,25.723,0.025723
+Liberia,Country/Area,26.362,0.026362
+Mali,Country/Area,35.022,0.035022
+Mauritania,Country/Area,26.335,0.026335
+Niger,Country/Area,39.956,0.039956000000000005
+Nigeria,Country/Area,30.973,0.030973
+Saint Helena,Country/Area,5.93,0.0059299999999999995
+Senegal,Country/Area,27.827,0.027827
+Sierra Leone,Country/Area,24.958,0.024957999999999998
+Togo,Country/Area,27.119,0.027119
+Kazakhstan,Country/Area,17.501,0.017501000000000003
+Kyrgyzstan,Country/Area,19.599,0.019599000000000002
+Tajikistan,Country/Area,21.276,0.021276
+Turkmenistan,Country/Area,16.677,0.016677
+Uzbekistan,Country/Area,17.814,0.017814
+China,Country/Area,6.243,0.006243
+"China, Hong Kong SAR",Country/Area,4.258,0.004258
+"China, Macao SAR",Country/Area,8.206,0.008206
+"China, Taiwan Province of China",Country/Area,6.565,0.0065650000000000005
+Dem. People's Republic of Korea,Country/Area,10.404,0.010404
+Japan,Country/Area,5.835,0.005835
+Mongolia,Country/Area,16.468,0.016468
+Republic of Korea,Country/Area,4.629,0.0046289999999999994
+Afghanistan,Country/Area,27.975,0.027975
+Bangladesh,Country/Area,14.918,0.014917999999999999
+Bhutan,Country/Area,10.267,0.010267
+India,Country/Area,14.047,0.014047
+Iran (Islamic Republic of),Country/Area,10.771,0.010771000000000001
+Maldives,Country/Area,10.302,0.010302
+Nepal,Country/Area,16.546,0.016545999999999998
+Pakistan,Country/Area,22.788,0.022788
+Sri Lanka,Country/Area,11.348,0.011348
+Brunei Darussalam,Country/Area,10.99,0.01099
+Cambodia,Country/Area,15.259,0.015259
+Indonesia,Country/Area,13.624,0.013624
+Lao People's Democratic Republic,Country/Area,17.5,0.0175
+Malaysia,Country/Area,12.597,0.012596999999999999
+Myanmar,Country/Area,13.823,0.013823
+Philippines,Country/Area,18.168,0.018168
+Singapore,Country/Area,5.981,0.005981
+Thailand,Country/Area,7.111,0.007111
+Timor-Leste,Country/Area,19.343,0.019343
+Viet Nam,Country/Area,12.514,0.012513999999999999
+Armenia,Country/Area,9.522,0.009522000000000001
+Azerbaijan,Country/Area,9.504,0.009504
+Bahrain,Country/Area,9.446,0.009446
+Cyprus,Country/Area,8.059,0.008058999999999998
+Georgia,Country/Area,10.838,0.010837999999999999
+Iraq,Country/Area,22.916,0.022916
+Israel,Country/Area,17.108,0.017108
+Jordan,Country/Area,18.071,0.018071
+Kuwait,Country/Area,7.662,0.0076619999999999995
+Lebanon,Country/Area,10.462,0.010461999999999999
+Oman,Country/Area,14.374,0.014374000000000001
+Qatar,Country/Area,7.346,0.007346
+Saudi Arabia,Country/Area,13.687,0.013687
+State of Palestine,Country/Area,23.194,0.023194
+Syrian Arab Republic,Country/Area,18.873,0.018873
+Türkiye,Country/Area,12.026,0.012026
+United Arab Emirates,Country/Area,8.063,0.008063
+Yemen,Country/Area,22.789,0.022789
+Belarus,Country/Area,7.761,0.0077610000000000005
+Bulgaria,Country/Area,7.34,0.00734
+Czechia,Country/Area,8.45,0.00845
+Hungary,Country/Area,8.89,0.00889
+Poland,Country/Area,8.339,0.008339000000000001
+Republic of Moldova,Country/Area,11.653,0.011653
+Romania,Country/Area,9.142,0.009141999999999999
+Russian Federation,Country/Area,8.243,0.008243
+Slovakia,Country/Area,8.843,0.008843
+Ukraine,Country/Area,5.402,0.0054020000000000006
+Denmark,Country/Area,10.241,0.010241
+Estonia,Country/Area,8.533,0.008532999999999999
+Faroe Islands,Country/Area,12.977,0.012977
+Finland,Country/Area,7.585,0.007585
+Guernsey,Country/Area,8.675,0.008675
+Iceland,Country/Area,10.345,0.010345
+Ireland,Country/Area,9.838,0.009838
+Isle of Man,Country/Area,7.499,0.007499
+Jersey,Country/Area,9.296,0.009295999999999999
+Latvia,Country/Area,7.603,0.0076029999999999995
+Lithuania,Country/Area,8.159,0.008159000000000001
+Norway,Country/Area,8.927,0.008927
+Sweden,Country/Area,9.652,0.009651999999999999
+United Kingdom,Country/Area,8.936,0.008936
+Albania,Country/Area,8.382,0.008381999999999999
+Andorra,Country/Area,5.93,0.0059299999999999995
+Bosnia and Herzegovina,Country/Area,6.9,0.006900000000000001
+Croatia,Country/Area,7.068,0.007068
+Gibraltar,Country/Area,8.64,0.00864
+Greece,Country/Area,6.491,0.006490999999999999
+Italy,Country/Area,6.088,0.006088
+Kosovo (under UNSC res. 1244),Country/Area,9.758,0.009758
+Malta,Country/Area,7.72,0.0077199999999999994
+Montenegro,Country/Area,9.437,0.009437
+North Macedonia,Country/Area,8.232,0.008232
+Portugal,Country/Area,6.819,0.0068189999999999995
+San Marino,Country/Area,4.952,0.004952
+Serbia,Country/Area,7.96,0.00796
+Slovenia,Country/Area,7.755,0.007755
+Spain,Country/Area,6.459,0.0064589999999999995
+Austria,Country/Area,8.431,0.008431
+Belgium,Country/Area,8.962,0.008962
+France,Country/Area,9.535,0.009535
+Germany,Country/Area,8.145,0.008145
+Liechtenstein,Country/Area,8.021,0.008021
+Luxembourg,Country/Area,9.079,0.009079
+Monaco,Country/Area,8.281,0.008281
+Netherlands,Country/Area,9.503,0.009503
+Switzerland,Country/Area,8.604,0.008603999999999999
+Anguilla,Country/Area,6.803,0.006803
+Antigua and Barbuda,Country/Area,10.208,0.010208
+Aruba,Country/Area,6.151,0.006151
+Bahamas,Country/Area,9.444,0.009444000000000001
+Barbados,Country/Area,9.221,0.009221
+"Bonaire, Sint Eustatius and Saba",Country/Area,8.857,0.008856999999999999
+British Virgin Islands,Country/Area,6.281,0.006281
+Cayman Islands,Country/Area,7.641,0.007641
+Cuba,Country/Area,7.862,0.007862000000000001
+Curaçao,Country/Area,9.92,0.00992
+Dominica,Country/Area,10.756,0.010756
+Dominican Republic,Country/Area,15.146,0.015146000000000001
+Grenada,Country/Area,12.37,0.012369999999999999
+Guadeloupe,Country/Area,10.505,0.010505
+Haiti,Country/Area,18.981,0.018981
+Jamaica,Country/Area,9.32,0.00932
+Martinique,Country/Area,8.53,0.00853
+Montserrat,Country/Area,8.096,0.008096
+Puerto Rico,Country/Area,6.927,0.006927
+Saint Barthélemy,Country/Area,6.443,0.006443
+Saint Kitts and Nevis,Country/Area,9.005,0.009005
+Saint Lucia,Country/Area,8.487,0.008487
+Saint Martin (French part),Country/Area,11.213,0.011212999999999999
+Saint Vincent and the Grenadines,Country/Area,10.65,0.01065
+Sint Maarten (Dutch part),Country/Area,8.439,0.008439
+Trinidad and Tobago,Country/Area,8.568,0.008568
+Turks and Caicos Islands,Country/Area,10.127,0.010127
+United States Virgin Islands,Country/Area,9.022,0.009022
+Belize,Country/Area,15.25,0.01525
+Costa Rica,Country/Area,9.739,0.009739000000000001
+El Salvador,Country/Area,13.033,0.013033
+Guatemala,Country/Area,17.914,0.017914000000000003
+Honduras,Country/Area,16.997,0.016996999999999998
+Mexico,Country/Area,12.3,0.0123
+Nicaragua,Country/Area,16.036,0.016036
+Panama,Country/Area,14.924,0.014924
+Argentina,Country/Area,11.836,0.011836000000000001
+Bolivia (Plurinational State of),Country/Area,18,0.018
+Brazil,Country/Area,10.814,0.010814
+Chile,Country/Area,9.362,0.009362
+Colombia,Country/Area,11.492,0.011492
+Ecuador,Country/Area,13.984,0.013984
+Falkland Islands (Malvinas),Country/Area,9.037,0.009037000000000002
+French Guiana,Country/Area,21.632,0.021632000000000002
+Guyana,Country/Area,16.533,0.016533000000000003
+Paraguay,Country/Area,16.67,0.01667
+Peru,Country/Area,14.187,0.014187
+Suriname,Country/Area,15.403,0.015403
+Uruguay,Country/Area,8.93,0.00893
+Venezuela (Bolivarian Republic of),Country/Area,14.142,0.014142
+Bermuda,Country/Area,6.271,0.006271
+Canada,Country/Area,8.767,0.008766999999999999
+Greenland,Country/Area,11.592,0.011592
+Saint Pierre and Miquelon,Country/Area,6.072,0.006072
+United States of America,Country/Area,10.061,0.010061
+Australia,Country/Area,10.244,0.010244
+New Zealand,Country/Area,10.648,0.010648
+Fiji,Country/Area,15.869,0.015869
+New Caledonia,Country/Area,11.622,0.011622
+Papua New Guinea,Country/Area,19.52,0.01952
+Solomon Islands,Country/Area,24.604,0.024604
+Vanuatu,Country/Area,23.69,0.023690000000000003
+Guam,Country/Area,14.311,0.014311
+Kiribati,Country/Area,22.288,0.022288
+Marshall Islands,Country/Area,14.586,0.014586
+Micronesia (Fed. States of),Country/Area,17.149,0.017149
+Nauru,Country/Area,21.458,0.021457999999999998
+Northern Mariana Islands,Country/Area,10.406,0.010406
+Palau,Country/Area,12.822,0.012821999999999998
+American Samoa,Country/Area,13.912,0.013912
+Cook Islands,Country/Area,13.361,0.013361000000000001
+French Polynesia,Country/Area,10.68,0.01068
+Niue,Country/Area,12.213,0.012213
+Samoa,Country/Area,23.041,0.023041
+Tokelau,Country/Area,15.12,0.01512
+Tonga,Country/Area,19.08,0.01908
+Tuvalu,Country/Area,19.809,0.019809
+Wallis and Futuna Islands,Country/Area,9.312,0.009311999999999999

@@ -3,26 +3,8 @@ library(odin)
 
 infection_delays <- c(0.8, 1.8) 
 
-# example inputs for now
-incidence_VS(
-  demography_input = c(100,200,300,200),
-  risk_ratios = c(0,0,0,0),
-  susceptibility = 0.6,
-  transmissibility = 0.07,
-  initial_infected = c(2,2,2,2),
-  calendar_input = calendar_input,
-  contacts = contact_all[['GBR']][1:4,1:4],
-  waning_rate = 1,
-  init_vaccinated = c(0.5,0.5,0,0),
-  begin_date = as.Date('01-11-2025',format='%d-%m-%Y'), 
-  end_date = as.Date('01-01-2030',format='%d-%m-%Y'),
-  age_groups_model = c(0,5,20,65),
-  vacc_rel_inf = 1
-)
-
 incidence_VS <- function(
     demography_input,
-    risk_ratios,
     susceptibility,
     transmissibility,
     initial_infected,
@@ -36,30 +18,31 @@ incidence_VS <- function(
     vacc_rel_inf
 ){
   
-  population_stratified <- c(demography_input*(1-risk_ratios), demography_input*(risk_ratios))
+  risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
+  population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
   
-  VE <- calendar_input$efficacy
+  VE <- calendar_input$efficacy[1:4]
   
   # define model timings
-  interval = 7
+  interval <- 7
   t <- as.numeric(seq(begin_date, end_date, interval))
   # define age group inputs
   no_groups <- length(population_stratified)
   
-  initial_infected_vector <-  c(initial_infected*(1-risk_ratios), initial_infected*(risk_ratios))
-  susceptibility_vector <- c((0.2*1 + 0.8*susceptibility), rep(susceptibility,3))
+  initial_infected_vector <- c(initial_infected, rep(0,8))
+  susceptibility_vector <- c(c((0.2*1 + 0.8*susceptibility), rep(susceptibility,3)), rep(0,8))
   
   # Contacts matrix only covers one set of age groups, here we "repeat" it to also cover risk groups
   new_cij <- matrix(rep(0,no_groups*no_groups), nrow = no_groups)
-  for (k in 1:2) {
-    for (l in 1:2) {
+  for (k in 1:3) {
+    for (l in 1:3) {
       lk <- (k - 1)*4 + 1
       ll <- (l - 1)*4 + 1
       new_cij[lk:(lk + 4 - 1), ll:(ll + 4 - 1)] <- contacts
     }
   }
   
-  if(sum(initial_infected_vector > population_stratified*(1 - init_vaccinated*VE)) > 0){
+  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*VE)) > 0){
     stop('More initial infecteds than susceptibles')
   }
   
@@ -70,17 +53,17 @@ incidence_VS <- function(
     trans = transmissibility,
     pop = population_stratified,
     I0 = initial_infected_vector,
-    V0 = rep(init_vaccinated,2),
+    V0 = c(init_vaccinated,rep(0,8)),
     R0 = rep(0, no_groups),
-    RV0 = calendar_input$efficacy[1:no_groups],
-    susc = rep(susceptibility_vector,2),
+    RV0 = c(VE,rep(0,8)),
+    susc = susceptibility_vector,
     alpha = calendar_input$efficacy[1:no_groups],
     omega = waning_rate,
     dates = calendar_input$dates,
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    num_vac_start = rep(0,no_groups), 
+    num_vac_start = population_stratified*rep(init_vaccinated,3),
     vacc_rel_inf = vacc_rel_inf
   )
   
@@ -107,6 +90,7 @@ incidence_VS <- function(
   
   return(output_y)
 }
+
 
 #### ODIN MODEL ####
 flu_odin <- odin::odin({
@@ -253,16 +237,6 @@ flu_odin <- odin::odin({
   dim(newInfv) <- no_groups
   dim(VT) <- no_groups
 })
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,13 +6,49 @@ library(data.table)
 
 model_age_groups <- c(0,5,20,65)
 
-## population age sizes
+#### POPULATION SIZES ####
+pop_hist_WPP_data <- data.table(read_csv('data/pop_hist_WPP_data.csv', show_col_types = F))
+pop_proj_WPP_data <- data.table(read_csv('data/pop_proj_WPP_data.csv', show_col_types = F))
 
+fcn_pop_all <- function(country, year_demog = 2025){
+  if(year_demog < 2022){
+    data_in <- pop_hist_WPP_data[name %in% country & Year == year_demog]
+  }else{
+    data_in <- pop_proj_WPP_data[name %in% country & Year == year_demog]
+  }
+  pop_in <- 1000*as.numeric(unname(unlist(data_in[,!c('name', 'Type', 'Year')])))
+  unlist(lapply(pop_in/5, function(x) rep(x,5)))
+}
+fcn_pop_model <- function(country, year_demog = 2025){
+  if(year_demog < 2022){
+    data_in <- pop_hist_WPP_data[name %in% country & Year == year_demog]
+  }else{
+    data_in <- pop_proj_WPP_data[name %in% country & Year == year_demog]
+  }
+  pop_in <- 1000*as.numeric(unname(unlist(data_in[,!c('name', 'Type', 'Year')])))
+  c(pop_in[1], sum(pop_in[2:4]), sum(pop_in[5:13]), sum(pop_in[14:21]))
+}
 
-## ageing
+#### AGEING ####
+LT_WPP_data <- data.table(read_csv('data/LT_WPP_data.csv', show_col_types = F))
+CBR_WPP_data <- data.table(read_csv('data/CBR_WPP_data.csv', show_col_types = F))
 
+demog_data <- data.frame(country = unique(CBR_WPP_data$Name),
+                         CBR = NA, M1 = NA, M2 = NA, M3 = NA, M4 = NA)
 
-## contact matrices
+# assuming rectangular age distributions within each age group so equal
+# weighting on each nqx in the group:
+for(i in 1:nrow(demog_data)){
+  country_input <- LT_WPP_data[Name == demog_data$country[i]]
+  demog_data$CBR[i] <- (CBR_WPP_data[Name == demog_data$country[i]])$CBR_indiv
+  demog_data$M1[i] <- (country_input[country_input$x == 0,]$dying_prob_annual +
+                         4*country_input[country_input$x == 1,]$dying_prob_annual)/5
+  demog_data$M2[i] <- mean(country_input[country_input$x %in% 5:19,]$dying_prob_annual)
+  demog_data$M3[i] <- mean(country_input[country_input$x %in% 20:60,]$dying_prob_annual)
+  demog_data$M4[i] <- 1/(country_input[x == 65])$LEx
+}
+
+#### CONTACT MATRICES ####
 load("data/contact_all.rdata")
 
 fcn_contact_matrix <- function(country_name, country_name_altern,
