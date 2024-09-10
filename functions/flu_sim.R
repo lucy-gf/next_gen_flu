@@ -1,16 +1,19 @@
 #### MAIN FLU SIMULATION FUNCTIONS ####
 
+library(countrycode)
+country_itzs_names <- data.table(read_csv('data/country_itzs_names.csv', show_col_types=F))
+
 ## function to simulate one epidemic
 one_flu <- function(
-    demography, # 4-vector of unvaccinated pop sizes
-    contact_matrix, # 4x4 contact matrix
+    country_name,
+    demography, # 4-vector of pop sizes
+    init_vacc, # 4-vector of proportions
     susceptibility, # in [0,1]
     transmissibility, 
     initial_infected, # 4-vector
     period_start_date,
     epid_start_date,
     end_date, # end of period
-    init_vacc = rep(0,4), # 4-vector 
     vacc_calendar_start, # annual
     vacc_calendar_weeks, # annual
     vacc_cov, # 4-vector
@@ -34,6 +37,7 @@ one_flu <- function(
   
   # define vaccine calendar
   calendar_input <- dfn_vaccine_calendar(
+    prop_vacc = init_vacc,
     dates_to_run = seq.Date(epid_start_date, end_date, 7),
     efficacy = efficacy_input,
     no_age_groups = length(demography),
@@ -42,7 +46,14 @@ one_flu <- function(
     vacc_calendar_weeks = vacc_calendar_weeks
   )
   
-  contact_matrix_small <- t(t(contact_matrix)/demography) # transform to per capita contacts
+  contact_matrix <- fcn_contact_matrix(
+    country_name, 
+    country_name_altern = country_itzs_names[country %like% country_name]$country_altern,
+    country_name_altern_2 = country_itzs_names[country %like% country_name]$country_altern_2,
+    pop_model = demography
+  )
+  # transform to per capita contacts
+  contact_matrix_small <- t(t(contact_matrix)/demography) 
   
   dt <- incidence_VS(
     demography,
@@ -65,7 +76,9 @@ one_flu <- function(
                        I1 = 0, I2 = 0, I3 = 0, I4 = 0,
                        IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
                        IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0), dt)
-  }
+  
+  output
+}
 
 ## function to combine multiple epidemics
 many_flu <- function(
@@ -82,15 +95,15 @@ many_flu <- function(
   ## make epid_inputs into a list
   
   one_flu(
-    demography = c(1000,2000,3000,2000), # 4-vector of unvaccinated pop sizes
-    contact_matrix = readRDS('data/list_contact_matr.RDS')$`United Kingdom`, # 4x4 contact matrix
+    country_name = country, # string
+    demography = c(1000,2000,3000,2000), # 4-vector of pop sizes
+    init_vacc = c(0,0,0,0), 
     susceptibility = 0.6, # in [0,1]
     transmissibility = 0.1, 
     initial_infected = c(20,20,20,20), # 4-vector
     period_start_date = as.Date('04-01-2025',format='%d-%m-%Y'),
     epid_start_date = as.Date('01-11-2025',format='%d-%m-%Y'),
     end_date = as.Date('01-01-2030',format='%d-%m-%Y'), # end of period
-    init_vacc = rep(0,4), 
     vacc_calendar_start = '01-10', 
     vacc_calendar_weeks = 12, 
     vacc_cov = c(0.3,0.3,0,0), 
@@ -105,7 +118,34 @@ many_flu <- function(
   output_df # return epidemics
 }
 
+
+dfn_vaccine_calendar(
+  dates_to_run = seq.Date(epid_start_date, end_date, 7),
+  efficacy = efficacy_input,
+  no_age_groups = length(demography),
+  no_risk_groups = 1,
+  vacc_calendar_start = '01-10',
+  vacc_calendar_weeks = 12
+)
+
+change_coverage <- function(data, final_uptake) {
+  sums <- data[nrow(data),]
+  # If final uptake is zero in a group then we need to make some kind of assumption on uptake rate over time
+  if (any(sums == 0)) {
+    warning("No prior information on uptake rate. Using constant uptake rate")
+    col <- which(sums == 0)
+    data[,col] <- seq(0, (nrow(data)-1))
+    sums <- data[nrow(data),]    
+  }
+  for(i in 1:nrow(data)) {
+    data[i,] <- data[i,]*final_uptake/sums
+  }
+  data
+}
+
+# function to define vaccine calendar from vaccine program
 dfn_vaccine_calendar <- function(
+    prop_vacc,
     dates_to_run,
     efficacy,
     no_age_groups,
@@ -114,6 +154,22 @@ dfn_vaccine_calendar <- function(
     vacc_calendar_weeks
     )
   {
+  
+  if(sum(prop_vacc>1)>0){stop('Init_vacc must be proportions, not absolute numbers')}
+  
+  coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
+  coverage_matrix[1, ] <- prop_vacc
+  
+  as_vaccination_calendar(
+    dates = dates_to_run,
+    efficacy = efficacy,
+    coverage = coverage_matrix,
+    no_age_groups = no_age_groups,
+    no_risk_groups = no_risk_groups
+  )
+  
+  
+  
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = 4)
   new_coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = 4)
   # only implementing vaccinations which occur in that year (defined as between ageing dates)
@@ -181,10 +237,16 @@ dfn_vaccine_calendar <- function(
   }
 }
 
-## function to calculate vaccine doses over same period
-flu_doses <- function(){
-  
-}
+
+
+
+
+
+
+# ## function to calculate vaccine doses over same period
+# flu_doses <- function(){
+#   
+# }
 
 
 

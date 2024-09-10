@@ -1,0 +1,187 @@
+codes,country,country_altern,country_altern_2,cluster_name,in_cluster
+AFG,Afghanistan,Afghanistan,Afghanistan,Asia-Europe,TRUE
+AGO,Angola,Angola,Angola,Africa,FALSE
+ALB,Albania,Albania,Albania,Europe,FALSE
+ARE,United Arab Emirates,United Arab Emirates,United Arab Emirates,Asia-Europe,FALSE
+ARG,Argentina,Argentina,Argentina,Southern America,TRUE
+ARM,Armenia,Armenia,Armenia,Asia-Europe,TRUE
+AUS,Australia,Australia,Australia,Oceania-Melanesia-Polynesia,TRUE
+AUT,Austria,Austria,Austria,Europe,TRUE
+AZE,Azerbaijan,Azerbaijan,Azerbaijan,Asia-Europe,TRUE
+BDI,Burundi,Burundi,Burundi,Africa,FALSE
+BEL,Belgium,Belgium,Belgium,Europe,FALSE
+BEN,Benin,Benin,Benin,Africa,FALSE
+BFA,Burkina Faso,Burkina Faso,Burkina Faso,Africa,TRUE
+BGD,Bangladesh,Bangladesh,Bangladesh,Eastern and Southern Asia,TRUE
+BGR,Bulgaria,Bulgaria,Bulgaria,Europe,TRUE
+BHR,Bahrain,Bahrain,Bahrain,Asia-Europe,TRUE
+BHS,Bahamas,Bahamas,Bahamas,Northern America,FALSE
+BIH,Bosnia & Herzegovina,Bosnia and Herzegovina,Bosnia & Herzegovina,Europe,FALSE
+BLR,Belarus,Belarus,Belarus,Europe,TRUE
+BLZ,Belize,Belize,Belize,Northern America,TRUE
+BOL,Bolivia,Bolivia (Plurinational State of),Bolivia,Southern America,TRUE
+BRA,Brazil,Brazil,Brazil,Southern America,TRUE
+BRB,Barbados,Barbados,Barbados,Southern America,FALSE
+BRN,Brunei,Brunei Darussalam,Brunei,Eastern and Southern Asia,FALSE
+BTN,Bhutan,Bhutan,Bhutan,Eastern and Southern Asia,TRUE
+BWA,Botswana,Botswana,Botswana,Africa,FALSE
+CAF,Central African Republic,Central African Republic,Central African Republic,Africa,TRUE
+CAN,Canada,Canada,Canada,Northern America,TRUE
+CHE,Switzerland,Switzerland,Switzerland,Europe,FALSE
+CHL,Chile,Chile,Chile,Southern America,TRUE
+CHN,China,China,China,Eastern and Southern Asia,TRUE
+CIV,Côte d’Ivoire,Côte d'Ivoire,Cote d'Ivoire,Africa,TRUE
+CMR,Cameroon,Cameroon,Cameroon,Africa,TRUE
+COD,Congo - Kinshasa,Democratic Republic of the Congo,Dem. Republic of the Congo,Africa,TRUE
+COG,Congo - Brazzaville,Congo,Congo - Brazzaville,Africa,FALSE
+COL,Colombia,Colombia,Colombia,Southern America,TRUE
+COM,Comoros,Comoros,Comoros,Africa,FALSE
+CPV,Cape Verde,Cabo Verde,Cape Verde,Africa,FALSE
+CRI,Costa Rica,Costa Rica,Costa Rica,Southern America,TRUE
+CUB,Cuba,Cuba,Cuba,Northern America,TRUE
+CYP,Cyprus,Cyprus,Cyprus,Asia-Europe,FALSE
+CZE,Czechia,Czechia,Czechia,Europe,FALSE
+DEU,Germany,Germany,Germany,Europe,TRUE
+DJI,Djibouti,Djibouti,Djibouti,Asia-Europe,FALSE
+DNK,Denmark,Denmark,Denmark,Europe,TRUE
+DOM,Dominican Republic,Dominican Republic,Dominican Republic,Southern America,TRUE
+DZA,Algeria,Algeria,Algeria,Europe,FALSE
+ECU,Ecuador,Ecuador,Ecuador,Northern America,TRUE
+EGY,Egypt,Egypt,Egypt,Asia-Europe,TRUE
+ERI,Eritrea,Eritrea,Eritrea,Asia-Europe,FALSE
+ESP,Spain,Spain,Spain,Europe,TRUE
+EST,Estonia,Estonia,Estonia,Europe,TRUE
+ETH,Ethiopia,Ethiopia,Ethiopia,Africa,TRUE
+FIN,Finland,Finland,Finland,Europe,TRUE
+FJI,Fiji,Fiji,Fiji,Oceania-Melanesia-Polynesia,TRUE
+FRA,France,France,France,Europe,TRUE
+GAB,Gabon,Gabon,Gabon,Africa,FALSE
+GBR,United Kingdom,United Kingdom,United Kingdom,Europe,TRUE
+GEO,Georgia,Georgia,Georgia,Asia-Europe,TRUE
+GHA,Ghana,Ghana,Ghana,Africa,TRUE
+GIN,Guinea,Guinea,Guinea,Africa,FALSE
+GMB,Gambia,Gambia,Gambia,Africa,FALSE
+GNB,Guinea-Bissau,Guinea-Bissau,Guinea-Bissau,Africa,FALSE
+GNQ,Equatorial Guinea,Equatorial Guinea,Equatorial Guinea,Africa,FALSE
+GRC,Greece,Greece,Greece,Europe,TRUE
+GTM,Guatemala,Guatemala,Guatemala,Northern America,TRUE
+GUF,French Guiana,French Guiana,French Guiana,Southern America,TRUE
+GUY,Guyana,Guyana,Guyana,Southern America,FALSE
+HKG,Hong Kong SAR China,"China, Hong Kong SAR",Hong Kong SAR China,Eastern and Southern Asia,FALSE
+HND,Honduras,Honduras,Honduras,Northern America,TRUE
+HRV,Croatia,Croatia,Croatia,Europe,FALSE
+HTI,Haiti,Haiti,Haiti,Southern America,TRUE
+HUN,Hungary,Hungary,Hungary,Europe,FALSE
+IDN,Indonesia,Indonesia,Indonesia,Eastern and Southern Asia,TRUE
+IND,India,India,India,Eastern and Southern Asia,TRUE
+IRL,Ireland,Ireland,Ireland,Europe,TRUE
+IRN,Iran,Iran (Islamic Republic of),Iran,Asia-Europe,TRUE
+IRQ,Iraq,Iraq,Iraq,Asia-Europe,TRUE
+ISL,Iceland,Iceland,Iceland,Europe,TRUE
+ISR,Israel,Israel,Israel,Asia-Europe,FALSE
+ITA,Italy,Italy,Italy,Europe,FALSE
+JAM,Jamaica,Jamaica,Jamaica,Southern America,TRUE
+JOR,Jordan,Jordan,Jordan,Asia-Europe,TRUE
+KAZ,Kazakhstan,Kazakhstan,Kazakhstan,Asia-Europe,TRUE
+KEN,Kenya,Kenya,Kenya,Africa,TRUE
+KGZ,Kyrgyzstan,Kyrgyzstan,Kyrgyzstan,Asia-Europe,TRUE
+KHM,Cambodia,Cambodia,Cambodia,Eastern and Southern Asia,TRUE
+KOR,South Korea,Republic of Korea,South Korea,Eastern and Southern Asia,TRUE
+KWT,Kuwait,Kuwait,Kuwait,Asia-Europe,TRUE
+LAO,Laos,Lao People's Democratic Republic,Lao People's Dem. Republic,Eastern and Southern Asia,TRUE
+LBN,Lebanon,Lebanon,Lebanon,Asia-Europe,TRUE
+LBR,Liberia,Liberia,Liberia,Africa,FALSE
+LBY,Libya,Libya,Libya,Europe,FALSE
+LCA,St. Lucia,Saint Lucia,St. Lucia,Southern America,FALSE
+LKA,Sri Lanka,Sri Lanka,Sri Lanka,Eastern and Southern Asia,TRUE
+LSO,Lesotho,Lesotho,Lesotho,Africa,FALSE
+LTU,Lithuania,Lithuania,Lithuania,Europe,TRUE
+LUX,Luxembourg,Luxembourg,Luxembourg,Europe,FALSE
+LVA,Latvia,Latvia,Latvia,Europe,FALSE
+MAC,Macao SAR China,"China, Macao SAR",Macao SAR China,Eastern and Southern Asia,FALSE
+MAR,Morocco,Morocco,Morocco,Europe,TRUE
+MDA,Moldova,Republic of Moldova,Moldova,Europe,FALSE
+MDG,Madagascar,Madagascar,Madagascar,Africa,TRUE
+MDV,Maldives,Maldives,Maldives,Eastern and Southern Asia,TRUE
+MEX,Mexico,Mexico,Mexico,Northern America,TRUE
+MKD,North Macedonia,North Macedonia,North Macedonia,Europe,FALSE
+MLI,Mali,Mali,Mali,Africa,TRUE
+MLT,Malta,Malta,Malta,Europe,TRUE
+MMR,Myanmar (Burma),Myanmar,Myanmar (Burma),Eastern and Southern Asia,FALSE
+MNE,Montenegro,Montenegro,Montenegro,Europe,FALSE
+MNG,Mongolia,Mongolia,Mongolia,Eastern and Southern Asia,TRUE
+MOZ,Mozambique,Mozambique,Mozambique,Africa,TRUE
+MRT,Mauritania,Mauritania,Mauritania,Africa,FALSE
+MUS,Mauritius,Mauritius,Mauritius,Africa,TRUE
+MWI,Malawi,Malawi,Malawi,Africa,FALSE
+MYS,Malaysia,Malaysia,Malaysia,Eastern and Southern Asia,TRUE
+NAM,Namibia,Namibia,Namibia,Africa,FALSE
+NCL,New Caledonia,New Caledonia,New Caledonia,Oceania-Melanesia-Polynesia,TRUE
+NER,Niger,Niger,Niger,Africa,TRUE
+NGA,Nigeria,Nigeria,Nigeria,Africa,TRUE
+NIC,Nicaragua,Nicaragua,Nicaragua,Northern America,TRUE
+NLD,Netherlands,Netherlands,Netherlands,Europe,TRUE
+NOR,Norway,Norway,Norway,Europe,TRUE
+NPL,Nepal,Nepal,Nepal,Eastern and Southern Asia,TRUE
+NZL,New Zealand,New Zealand,New Zealand,Oceania-Melanesia-Polynesia,FALSE
+OMN,Oman,Oman,Oman,Asia-Europe,TRUE
+PAK,Pakistan,Pakistan,Pakistan,Asia-Europe,TRUE
+PAN,Panama,Panama,Panama,Southern America,TRUE
+PER,Peru,Peru,Peru,Northern America,TRUE
+PHL,Philippines,Philippines,Philippines,Eastern and Southern Asia,TRUE
+PNG,Papua New Guinea,Papua New Guinea,Papua New Guinea,Eastern and Southern Asia,TRUE
+POL,Poland,Poland,Poland,Europe,TRUE
+PRI,Puerto Rico,Puerto Rico,Puerto Rico,Northern America,FALSE
+PRK,North Korea,Dem. People's Republic of Korea,Dem. People's Rep. of Korea,Eastern and Southern Asia,FALSE
+PRT,Portugal,Portugal,Portugal,Europe,FALSE
+PRY,Paraguay,Paraguay,Paraguay,Southern America,TRUE
+PSE,Palestinian Territories,State of Palestine,Palestinian Territories,Asia-Europe,FALSE
+QAT,Qatar,Qatar,Qatar,Asia-Europe,TRUE
+ROU,Romania,Romania,Romania,Europe,FALSE
+RUS,Russia,Russian Federation,Russia,Eastern and Southern Asia,TRUE
+RWA,Rwanda,Rwanda,Rwanda,Asia-Europe,TRUE
+SAU,Saudi Arabia,Saudi Arabia,Saudi Arabia,Asia-Europe,FALSE
+SDN,Sudan,Sudan,Sudan,Africa,FALSE
+SEN,Senegal,Senegal,Senegal,Africa,TRUE
+SGP,Singapore,Singapore,Singapore,Eastern and Southern Asia,TRUE
+SLB,Solomon Islands,Solomon Islands,Solomon Islands,Oceania-Melanesia-Polynesia,FALSE
+SLE,Sierra Leone,Sierra Leone,Sierra Leone,Africa,TRUE
+SLV,El Salvador,El Salvador,El Salvador,Southern America,TRUE
+SRB,Serbia,Serbia,Serbia,Europe,FALSE
+SSD,South Sudan,South Sudan,South Sudan,Africa,FALSE
+STP,São Tomé & Príncipe,Sao Tome and Principe,São Tomé & Príncipe,Africa,FALSE
+SUR,Suriname,Suriname,Suriname,Southern America,TRUE
+SVK,Slovakia,Slovakia,Slovakia,Europe,TRUE
+SVN,Slovenia,Slovenia,Slovenia,Europe,TRUE
+SWE,Sweden,Sweden,Sweden,Europe,FALSE
+SWZ,Eswatini,Swaziland,Eswatini,Africa,FALSE
+SYR,Syria,Syrian Arab Republic,Syria,Asia-Europe,FALSE
+TCD,Chad,Chad,Chad,Africa,FALSE
+TGO,Togo,Togo,Togo,Africa,TRUE
+THA,Thailand,Thailand,Thailand,Eastern and Southern Asia,TRUE
+TJK,Tajikistan,Tajikistan,Tajikistan,Asia-Europe,FALSE
+TKM,Turkmenistan,Turkmenistan,Turkmenistan,Asia-Europe,FALSE
+TLS,Timor-Leste,East Timor,Timor-Leste,Eastern and Southern Asia,FALSE
+TON,Tonga,Tonga,Tonga,Oceania-Melanesia-Polynesia,FALSE
+TTO,Trinidad & Tobago,Trinidad and Tobago,Trinidad & Tobago,Southern America,FALSE
+TUN,Tunisia,Tunisia,Tunisia,Europe,FALSE
+TUR,Turkey,Türkiye,Turkey,Asia-Europe,TRUE
+TZA,Tanzania,United Republic of Tanzania,Tanzania,Africa,TRUE
+UGA,Uganda,Uganda,Uganda,Africa,TRUE
+UKR,Ukraine,Ukraine,Ukraine,Europe,TRUE
+URY,Uruguay,Uruguay,Uruguay,Southern America,TRUE
+USA,United States,United States of America,United States,Northern America,TRUE
+UZB,Uzbekistan,Uzbekistan,Uzbekistan,Asia-Europe,FALSE
+VCT,St. Vincent & Grenadines,Saint Vincent and the Grenadines,St. Vincent and the Grenadines,Southern America,FALSE
+VEN,Venezuela,Venezuela (Bolivarian Republic of),Venezuela,Southern America,TRUE
+VNM,Vietnam,Viet Nam,Vietnam,Eastern and Southern Asia,TRUE
+VUT,Vanuatu,Vanuatu,Vanuatu,Oceania-Melanesia-Polynesia,FALSE
+WSM,Samoa,Samoa,Samoa,Oceania-Melanesia-Polynesia,FALSE
+YEM,Yemen,Yemen,Yemen,Asia-Europe,FALSE
+ZAF,South Africa,South Africa,South Africa,Africa,TRUE
+ZMB,Zambia,Zambia,Zambia,Africa,TRUE
+ZWE,Zimbabwe,Zimbabwe,Zimbabwe,Africa,FALSE
+JPN,Japan,Japan,Japan,Eastern and Southern Asia,FALSE
+TWN,"China, Taiwan Province of China",Taiwan,"China, Taiwan Province of China",Eastern and Southern Asia,FALSE
+SOM,Somalia,Somalia,Somalia,Africa,FALSE
+XKX,Kosovo (under UNSC res. 1244),Kosovo,Kosovo (under UNSC res. 1244),Europe,FALSE

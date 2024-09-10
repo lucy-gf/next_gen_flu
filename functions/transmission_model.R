@@ -238,8 +238,87 @@ flu_odin <- odin::odin({
   dim(VT) <- no_groups
 })
 
-
-
+#### VACCINATION-SPECIFIC DEMOGRAPHY ####
+fcn_vaccinated_demography <- function(
+    demography_input,
+    susceptibility,
+    transmissibility,
+    initial_infected,
+    calendar_input,
+    contacts,
+    waning_rate,
+    init_vaccinated,
+    begin_date, 
+    end_date, 
+    age_groups_model,
+    vacc_rel_inf
+){
+  
+  risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
+  population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
+  
+  VE <- calendar_input$efficacy[1:4]
+  
+  # define model timings
+  interval <- 7
+  t <- as.numeric(seq(begin_date, end_date, interval))
+  # define age group inputs
+  no_groups <- length(population_stratified)
+  
+  initial_infected_vector <- c(initial_infected, rep(0,8))
+  susceptibility_vector <- c(c((0.2*1 + 0.8*susceptibility), rep(susceptibility,3)), rep(0,8))
+  
+  # Contacts matrix only covers one set of age groups, here we "repeat" it to also cover risk groups
+  new_cij <- matrix(rep(0,no_groups*no_groups), nrow = no_groups)
+  for (k in 1:3) {
+    for (l in 1:3) {
+      lk <- (k - 1)*4 + 1
+      ll <- (l - 1)*4 + 1
+      new_cij[lk:(lk + 4 - 1), ll:(ll + 4 - 1)] <- contacts
+    }
+  }
+  
+  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*VE)) > 0){
+    stop('More initial infecteds than susceptibles')
+  }
+  
+  # specify the model
+  mod <- flu_odin$new(
+    no_groups = no_groups,
+    cij = new_cij,
+    trans = transmissibility,
+    pop = population_stratified,
+    I0 = initial_infected_vector,
+    V0 = c(init_vaccinated,rep(0,8)),
+    R0 = rep(0, no_groups),
+    RV0 = c(VE,rep(0,8)),
+    susc = susceptibility_vector,
+    alpha = calendar_input$efficacy[1:no_groups],
+    omega = waning_rate,
+    dates = calendar_input$dates,
+    calendar = matrix(calendar_input$calendar, ncol = 4*3),
+    gamma1 = 2/infection_delays[1],
+    gamma2 = 2/infection_delays[2], 
+    num_vac_start = population_stratified*rep(init_vaccinated,3),
+    vacc_rel_inf = vacc_rel_inf
+  )
+  
+  # run the model
+  y_run <- mod$run(t, hmax = NULL, method = "euler", hini = 0.25, atol = 1)
+  # pop sizes to check:
+  y_pop <- data.frame(U1 = rowSums(y_run[,12*(1:6) - 10]),
+                      V1 = rowSums(y_run[,12*(1:6) + 98]),
+                      U2 = rowSums(y_run[,12*(1:6) - 9]),
+                      V2 = rowSums(y_run[,12*(1:6) + 99]),
+                      U3 = rowSums(y_run[,12*(1:6) - 8]),
+                      V3 = rowSums(y_run[,12*(1:6) + 100]),
+                      U4 = rowSums(y_run[,12*(1:6) - 7]),
+                      V4 = rowSums(y_run[,12*(1:6) + 101]),
+                      t = y_run[,1])
+  
+  return(y_pop)
+}
+### END OF FUNCTION: fcn_vaccinated_demography ###
 
 
 
