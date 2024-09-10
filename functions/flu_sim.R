@@ -145,13 +145,13 @@ change_coverage <- function(data, final_uptake) {
 
 # function to define vaccine calendar from vaccine program
 dfn_vaccine_calendar <- function(
-    prop_vacc,
-    dates_to_run,
-    efficacy,
-    no_age_groups,
-    no_risk_groups,
-    vacc_calendar_start,
-    vacc_calendar_weeks
+    prop_vacc, # e.g. c(0.3, 0.3, 0, 0)
+    dates_to_run, # seq.Date between start of epidemic and end of period
+    efficacy, # e.g. c(0.42, 0.42, 0.42, 0.28)
+    no_age_groups, # 4
+    no_risk_groups, # 1
+    vacc_calendar_start, # e.g. '01-10'
+    vacc_calendar_weeks # e.g. 12
     )
   {
   
@@ -159,6 +159,19 @@ dfn_vaccine_calendar <- function(
   
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
   coverage_matrix[1, ] <- prop_vacc
+  
+  ## vaccination calendar will encompass the first annual vaccination program which overlaps with or comes after the epidemic beginning
+  
+  year_to_vacc <- ifelse(dates_to_run[1] < (as.Date(paste0(vacc_calendar_start, '-', year(dates_to_run[1])), format = '%d-%m-%Y') + 7*vacc_calendar_weeks - 1),
+                         year(dates_to_run[1]),
+                         year(dates_to_run[1]) + 1)
+    
+  vaccination_program_dates_weekly <- seq.Date(as.Date(paste0(vacc_calendar_start, '-', year_to_vacc), format = '%d-%m-%Y'), 
+                                               as.Date(paste0(vacc_calendar_start, '-', year_to_vacc), format = '%d-%m-%Y') + 7*vacc_calendar_weeks - 1, 
+                                               7)
+  vaccination_program_dates_daily <- seq.Date(as.Date(paste0(vacc_calendar_start, '-', year_to_vacc), format = '%d-%m-%Y'),
+                                              as.Date(paste0(vacc_calendar_start, '-', year_to_vacc), format = '%d-%m-%Y') + 7*vacc_calendar_weeks - 1, 
+                                              1)
   
   as_vaccination_calendar(
     dates = dates_to_run,
