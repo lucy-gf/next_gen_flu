@@ -241,17 +241,17 @@ flu_odin <- odin::odin({
 #### VACCINATION-SPECIFIC DEMOGRAPHY ####
 fcn_vaccinated_demography <- function(
     demography_input,
-    susceptibility,
-    transmissibility,
-    initial_infected,
+    vaccination_ratio_input,
+    susceptibility = 0,
+    transmissibility = 0,
+    initial_infected = 1,
     calendar_input,
     contacts,
     waning_rate,
-    init_vaccinated,
     begin_date, 
     end_date, 
     age_groups_model,
-    vacc_rel_inf
+    vacc_rel_inf = 1
 ){
   
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
@@ -278,7 +278,7 @@ fcn_vaccinated_demography <- function(
     }
   }
   
-  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*VE)) > 0){
+  if(sum(initial_infected_vector[1:4] > population_stratified[1:4]*(1 - vaccination_ratio_input*VE)) > 0){
     stop('More initial infecteds than susceptibles')
   }
   
@@ -299,7 +299,7 @@ fcn_vaccinated_demography <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    num_vac_start = population_stratified*rep(init_vaccinated,3),
+    num_vac_start = population_stratified*rep(vaccination_ratio_input,3),
     vacc_rel_inf = vacc_rel_inf
   )
   

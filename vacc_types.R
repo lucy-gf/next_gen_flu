@@ -29,7 +29,7 @@ vacc_type_list <- list(
   )
 )
 
-# targeted populations
+## function to map targeted ages to proportions of each model age group
 coverage_vector <- function(
     target, # vector of targeted ages
     cov, # scalar
@@ -51,27 +51,35 @@ coverage_vector <- function(
   coverage_vec
 }
 
-fcn_vacc_prog <- function(target_ages, cov_input, none = F){
+## function to map age targeting, coverage input, vaccination program details to a list
+fcn_vacc_prog <- function(target_ages, cov_input, 
+                          vacc_calendar_start,
+                          vacc_calendar_weeks, 
+                          none = F){
   if(none == T){
     output_list <- list(
       c(list(pop_coverage = c(0,0,0,0),
-             vacc_type = 'current')))
+             vacc_type = 'current',
+             start = vacc_calendar_start,
+             weeks = vacc_calendar_weeks)))
     names(output_list) <- paste0('no_vacc')
     return(output_list)
   }
-  output_list <- list(
-    c(list(pop_coverage = coverage_vector(target_ages, cov_input),
-           vacc_type = 'current')),
-    c(list(pop_coverage = coverage_vector(target_ages, cov_input),
-           vacc_type = 'improved_minimal')),
-    c(list(pop_coverage = coverage_vector(target_ages, cov_input),
-           vacc_type = 'improved_efficacy')),
-    c(list(pop_coverage = coverage_vector(target_ages, cov_input),
-           vacc_type = 'improved_breadth')),
-    c(list(pop_coverage = coverage_vector(target_ages, cov_input),
-           vacc_type = 'universal'))
-  )
-  names(output_list) <- c('current','improved_minimal','improved_efficacy','improved_breadth','universal')
+  
+  output_list <- list()
+  
+  for(vt in names(vacc_type_list)){
+    output_list <- c(output_list,
+                        list(list(pop_coverage = coverage_vector(target_ages, cov_input),
+                               vacc_type = vt,
+                               start = vacc_calendar_start,
+                               weeks = vacc_calendar_weeks
+                               )
+                          )
+                        )
+  }
+  
+  names(output_list) <- names(vacc_type_list)
   output_list 
 }
 

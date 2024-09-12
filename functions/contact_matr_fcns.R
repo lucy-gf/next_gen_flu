@@ -1,4 +1,4 @@
-#### FUNCTIONS TO HELP PRODUCE CONTACT MATRICES ####
+#### FUNCTIONS TO PRODUCE/REDUCE CONTACT MATRICES ####
 
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 # create reduced contact matrix ----------------------------------------------------------

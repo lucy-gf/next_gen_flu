@@ -8,7 +8,7 @@ source('functions/contact_matr_fcns.R')
 
 model_age_groups <- c(0,5,20,65)
 
-#### POPULATION SIZES ####
+#### POPULATION SIZE FUNCTIONS  ####
 pop_hist_WPP_data <- data.table(read_csv('data/pop_hist_WPP_data.csv', show_col_types = F))
 pop_proj_WPP_data <- data.table(read_csv('data/pop_proj_WPP_data.csv', show_col_types = F))
 
@@ -42,9 +42,16 @@ fcn_pop_5_to_75 <- function(country, year_demog = 2025){
   c(pop_in[1:15], sum(pop_in[16:21]))
 }
 
+fcn_yr_res_pop <- function(pop){
+  # c(rep((pop$U1+pop$V1)/5, 5), rep((pop$U2+pop$V2)/15, 15),
+  #   rep((pop$U3+pop$V3)/45, 45), rep((pop$U4+pop$V4)/5, 5))
+  c((pop$U1+pop$V1), (pop$U2+pop$V2),
+    (pop$U3+pop$V3), (pop$U4+pop$V4))
+}
+
 #### VACCINATING AND AGEING ####
 
-## demographic data ##
+## demographic data calculation ##
 # LT_WPP_data <- data.table(read_csv('data/LT_WPP_data.csv', show_col_types = F))
 # CBR_WPP_data <- data.table(read_csv('data/CBR_WPP_data.csv', show_col_types = F))
 # demog_data <- data.frame(country = unique(CBR_WPP_data$Name),
@@ -65,42 +72,35 @@ fcn_pop_5_to_75 <- function(country, year_demog = 2025){
 demog_data <- data.table(read_csv('data/demog_data.csv', show_col_types=F))
 
 ## function ##
-fcn_weekly_demog <- function(country, demographic_pars = demog_data,
-                             start_year = 2025, years = 30,
-                             hemisphere,
-                             pop_coverage,
-                             weeks_vaccinating,
-                             imm_duration, 
-                             coverage_pattern,
-                             first_year_all = T,
-                             NH_vacc_date = '01-10',
-                             SH_vacc_date = '01-04',
-                             init_vaccinated = c(0,0,0,0)){
+fcn_weekly_demog <- function(country,
+                             ageing,
+                             ageing_date = NULL, 
+                             dates_in,
+                             demographic_start_year,
+                             vaccine_program,
+                             init_vaccinated,
+                             model_age_groups){
   
   ## SETTING DEMOGRAPHIC PARAMETERS
-  start_pop <- fcn_pop_model(country, start_year)
-  pars <- demographic_pars[demographic_pars$country %in% country,]
+  start_pop <- fcn_pop_model(country, year(dates_in[1]))
+  pars <- demog_data[demog_data$country %in% country,]
   CBR <- pars$CBR; M1 <- pars$M1; M2 <- pars$M2; M3 <- pars$M3; M4 <- pars$M4
-  ageing_vec <- c(1/5, 1/15, 1/45, 0)
+  ageing_vec <- c(1/(model_age_groups[2:4] - model_age_groups[1:3]), 0) 
   mort_vec <- c(M1, M2, M3, M4)
   RH_matrix <- matrix(c((1-ageing_vec[1])*(1-mort_vec[1]), 0, 0, 0,
                         (1-mort_vec[1])*ageing_vec[1], (1-ageing_vec[2])*(1-mort_vec[2]), 0, 0,
                         0, (1-mort_vec[2])*ageing_vec[2], (1-ageing_vec[3])*(1-mort_vec[3]), 0,
                         0, 0, (1-mort_vec[3])*ageing_vec[3], (1-ageing_vec[4])*(1-mort_vec[4])), nrow=4)
-  #RH_matrix <- matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1), nrow=4, ncol=4) ## CHANGE BACK PLS
+  
+  # arbitrary, doesn't matter what it is
   contact_matrix_input <- fcn_contact_matrix(country_name = 'France',
                                              country_name_altern = NA,
                                              country_name_altern_2 = NA,
-                                             pop_model = c(10,10,10,10)) # doesn't matter what it is
+                                             pop_model = c(10,10,10,10)) 
   
   ## MAKING OUTPUT MATRIX
-  monday_start <- which(weekdays(seq.Date(from = as.Date(paste0("01-01-", start_year), '%d-%m-%Y'),
-                                          to = as.Date(paste0("07-01-", start_year), '%d-%m-%Y'),
-                                          by = 1)) == 'Monday')
   output <- data.frame(country = country[1],
-                       week = seq.Date(from = as.Date(paste0(monday_start, "-01-", start_year), '%d-%m-%Y'),
-                                       to = as.Date(paste0("31-12-", (start_year + years - 1)), '%d-%m-%Y'),
-                                       by = 7),
+                       week = dates_in,
                        U1 = NA, U2 = NA, U3 = NA, U4 = NA,
                        V1 = NA, V2 = NA, V3 = NA, V4 = NA)
   output <- output %>% mutate(year = year(week)) %>% select(country, year, week,
@@ -112,15 +112,16 @@ fcn_weekly_demog <- function(country, demographic_pars = demog_data,
   output[1,c('U1','U2','U3','U4')] <- start_pop - output[1,c('V1','V2','V3','V4')] 
   
   ## SETTING ACTION DATES
-  if(hemisphere == 'NH'){
-    vacc_date <- as.Date(paste0(NH_vacc_date, '-', start_year), format ='%d-%m-%Y')
-    ageing_date <- as.Date(paste0(SH_vacc_date, '-', start_year), format ='%d-%m-%Y')
-  }else{
-    vacc_date <- as.Date(paste0(SH_vacc_date, '-', start_year), format ='%d-%m-%Y') 
-    ageing_date <- as.Date(paste0(NH_vacc_date, '-', start_year), format ='%d-%m-%Y') 
-  }
-  dates <- sort(c(as.Date(paste0(SH_vacc_date, '-', start_year:(start_year + years - 1)), format ='%d-%m-%Y'),
-                  as.Date(paste0(NH_vacc_date, '-', start_year:(start_year + years - 1)), format ='%d-%m-%Y')))
+  start_year <- year(dates_in[1])
+  end_year <- year(dates_in[length(dates_in)])
+  vacc_date <- as.Date(paste0(vaccine_program$start, '-', start_year), format ='%d-%m-%Y')
+  if(ageing){
+    ageing_y1 <- as.Date(paste0(ageing_date, '-', start_year), format ='%d-%m-%Y')
+  }else{ageing_y1 <- NULL}
+  
+  dates <- sort(c(as.Date(paste0(vaccine_program$start, '-', start_year:end_year), format ='%d-%m-%Y'),
+                  as.Date(paste0(ageing_date, '-', start_year:end_year), format ='%d-%m-%Y')))
+  dates <- dates[dates %in% seq.Date(dates_in[1], dates_in[length(dates_in)], by=1)]
   vacc_first <- isTRUE(vacc_date == dates[1]) # equiv to hemisphere == 'SH'
   
   ## FILLING FIRST SECTION 
@@ -138,25 +139,18 @@ fcn_weekly_demog <- function(country, demographic_pars = demog_data,
   )
   
   pop1 <- output[1,]
-  input1 <- incidence_function_fit_demog(
+  input1 <- fcn_vaccinated_demography(
     demography_input = fcn_yr_res_pop(pop1),
     calendar_input = vaccine_calendar0,
     contacts = contact_matrix_input, 
-    waning_rate = 1/(365*imm_duration),
-    vaccination_ratio_input = list(
-      # proportion of the population who have *been* vaccinated
-      prop_vaccine_compartments = c(unname(pop1['V1']/(pop1['U1'] + pop1['V1'])), 
+    waning_rate = 0.03, # irrelevant
+    vaccination_ratio_input = c(unlist(c(unname(pop1['V1']/(pop1['U1'] + pop1['V1'])), 
                                     unname(pop1['V2']/(pop1['U2'] + pop1['V2'])),
                                     unname(pop1['V3']/(pop1['U3'] + pop1['V3'])),
-                                    unname(pop1['V4']/(pop1['U4'] + pop1['V4'])),
-                                    rep(0,8)), 
-      # proportion of those *vaccinated* who were vaccinated *effectively*
-      prop_R_vaccinated = rep(0,12), # not relevant
-      # proportion of those *unvaccinated* who are immune
-      prop_R = rep(0,12)), # not relevant
-    begin_date = dates_to_run[1], # CHANGE
-    end_date = dates_to_run[length(dates_to_run)],  # CHANGE
-    age_groups_model = c(5,20,65)
+                                    unname(pop1['V4']/(pop1['U4'] + pop1['V4']))))),
+    begin_date = dates_to_run[1], 
+    end_date = dates_to_run[length(dates_to_run)],  
+    age_groups_model = c(0,5,20,65)
   ) %>% mutate(t = as.Date(t))
   output[output$week %in% dates_to_run,columns] <- input1 %>% select(!c(t))
   action_week <- dates_to_run[length(dates_to_run)]
