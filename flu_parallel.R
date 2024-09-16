@@ -33,6 +33,7 @@ vaccine_programs <- c(
 ## MODEL AGE GROUPS - fixed ##
 model_age_groups <- c(0,5,20,65)
 age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99))
+# could generalise across more/different age groups, not done though.
 
 #### EPIDEMIC DATA ####
 epid_starts <- c(as.Date(paste0('01-11-', 2025:2029), format='%d-%m-%Y'))
