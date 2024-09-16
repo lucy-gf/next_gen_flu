@@ -91,17 +91,23 @@ for(i in 1:length(infs_rds_list)){
 infs_cum <- infs_out[, c('vacc_type','tot')][, lapply(.SD, cumsum), by=c('vacc_type')]
 infs_cum[, time:=infs_out$time]
 
+# colors
+vt_colors <- c('no_vacc' = '#000000', 'current' = '#d91818', 'improved_minimal' = '#e2790e', 
+               'improved_efficacy' = '#eacb2c', 'improved_breadth' = '#62adc1', 'universal' = '#324da0')
+
 incidence <- ggplot(infs_out) + 
   geom_line(aes(x=time, y=tot/1000000, col=vacc_type), lwd=0.8) +
   ylab('Infections (millions)') + xlab('') + 
+  scale_color_manual(values = vt_colors) + 
   labs(col='Vaccine type') +
-  theme_minimal()
+  theme_minimal() + theme(text = element_text(size = 14))
 
 cumulative <- ggplot(infs_cum) + 
   geom_line(aes(x=time, y=tot/1000000, col=vacc_type), lwd=0.8) +
   ylab('Cumulative infections (millions)') + xlab('Time') + 
-  labs(col='Vaccine type') +
-  theme_minimal()
+  labs(col='Vaccine type') + 
+  scale_color_manual(values = vt_colors) + 
+  theme_minimal() + theme(text = element_text(size = 14))
   
 incidence + cumulative + plot_layout(guides='collect',
                                      nrow=2)
