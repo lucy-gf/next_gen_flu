@@ -21,8 +21,6 @@ incidence_VS <- function(
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
   population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
   
-  VE <- calendar_input$efficacy[1:4]
-  
   # define model timings
   interval <- 7
   t <- as.numeric(seq(begin_date, end_date, interval))
@@ -55,7 +53,7 @@ incidence_VS <- function(
     I0 = initial_infected_vector,
     V0 = c(init_vaccinated,rep(0,8)),
     R0 = rep(0, no_groups),
-    RV0 = c(VE,rep(0,8)),
+    RV0 = calendar_input$efficacy[1:no_groups],
     susc = susceptibility_vector,
     alpha = calendar_input$efficacy[1:no_groups],
     omega = waning_rate,
@@ -63,7 +61,6 @@ incidence_VS <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    num_vac_start = population_stratified*rep(init_vaccinated,3),
     vacc_rel_inf = vacc_rel_inf
   )
   
@@ -106,7 +103,6 @@ flu_odin <- odin::odin({
   RV0[] <- user()
   # Initial infection by age/risk group
   I0[] <- user()
-  num_vac_start[] <- user()
   
   # MODEL PARAMETERS
   # Susceptibility
@@ -187,15 +183,15 @@ flu_odin <- odin::odin({
   initial(cumIU[1:no_groups]) <- 0
   initial(cumIV[1:no_groups]) <- 0
   
-  initial(Sv[1:no_groups]) <- (pop[i]*V0[i])*(1-RV0[i])
+  initial(Sv[1:no_groups]) <- (pop[i]*V0[i])*(1 - RV0[i])
   initial(E1v[1:no_groups]) <- 0
   initial(E2v[1:no_groups]) <- 0
   initial(I1v[1:no_groups]) <- 0
   initial(I2v[1:no_groups]) <- 0
-  initial(Rv[1:no_groups]) <- (pop[i]*V0[i])*(RV0[i])
+  initial(Rv[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
   initial(Rnv[1:no_groups]) <- 0
-  initial(Rev[1:no_groups]) <- (pop[i]*V0[i])*(RV0[i])
-  initial(VT[1:no_groups]) <- num_vac_start[i]
+  initial(Rev[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
+  initial(VT[1:no_groups]) <- (pop[i]*V0[i])
   
   # Set dimension of all variables/parameters
   dim(dates) <- user()
@@ -206,7 +202,6 @@ flu_odin <- odin::odin({
   dim(V0) <- no_groups
   dim(R0) <- no_groups
   dim(RV0) <- no_groups
-  dim(num_vac_start) <- no_groups
   dim(susc) <- no_groups
   dim(lambda) <- no_groups
   dim(v) <- no_groups
@@ -244,7 +239,7 @@ fcn_vaccinated_demography <- function(
     vaccination_ratio_input,
     susceptibility = 0,
     transmissibility = 0,
-    initial_infected = 1,
+    initial_infected = c(0,0,0,0),
     calendar_input,
     contacts,
     waning_rate,
@@ -256,8 +251,6 @@ fcn_vaccinated_demography <- function(
   
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
   population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
-  
-  VE <- calendar_input$efficacy[1:4]
   
   # define model timings
   interval <- 7
@@ -289,9 +282,9 @@ fcn_vaccinated_demography <- function(
     trans = transmissibility,
     pop = population_stratified,
     I0 = initial_infected_vector,
-    V0 = c(init_vaccinated,rep(0,8)),
+    V0 = (c(vaccination_ratio_input, rep(0,8))),
     R0 = rep(0, no_groups),
-    RV0 = c(VE,rep(0,8)),
+    RV0 = calendar_input$efficacy[1:no_groups],
     susc = susceptibility_vector,
     alpha = calendar_input$efficacy[1:no_groups],
     omega = waning_rate,
@@ -299,7 +292,6 @@ fcn_vaccinated_demography <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    num_vac_start = population_stratified*rep(vaccination_ratio_input,3),
     vacc_rel_inf = vacc_rel_inf
   )
   
