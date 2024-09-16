@@ -7,6 +7,7 @@ country_itzs_names <- data.table(read_csv('data/country_itzs_names.csv', show_co
 one_flu <- function(
     country_code,
     demography, # 4-vector of pop sizes
+    demography_dt,
     init_vacc, # 4-vector of proportions
     susceptibility, # in [0,1]
     transmissibility, 
@@ -33,10 +34,21 @@ one_flu <- function(
   
   waning_rate <- 1/(365*vacc_details$imm_duration)
   
+  poss_dates <- as.Date(unlist(lapply(as.Date(paste0(vacc_calendar_start, '-', (year(epid_start_date) - 1):(year(end_date) + 1)), format = '%d-%m-%Y'),
+                                                last_monday)))
+ 
+  week1 <- poss_dates[epid_start_date - poss_dates < 7*vacc_calendar_weeks &
+                         epid_start_date - poss_dates >= 0]
+  week2 <- poss_dates[poss_dates - epid_start_date <= (365+6) &
+                        poss_dates - epid_start_date > 0]
+  existing_cov_list <- c(
+    demography_dt[week %in% c(week1,week2) & V==T,]$value/demography_dt[week %in% c(week1,week2) & V==T,]$total_as
+  )
+    
   # define vaccine calendar
   calendar_input <- dfn_vaccine_calendar(
     vacc_cov = vaccine_program$pop_coverage,
-    existing_cov = init_vacc,
+    existing_cov = existing_cov_list,
     dates_to_run = seq.Date(epid_start_date, end_date, 7),
     efficacy = efficacy_input,
     no_age_groups = length(demography),
@@ -115,7 +127,7 @@ many_flu <- function(
   )
   
   output_dt <- data.table()
-  for(epidemic_i in 1:nrow(epid_inputs)){ ## change from loop to speed up?
+  for(epidemic_i in 1:nrow(epid_inputs)){ 
     
     epid_data <- epid_inputs[epidemic_i,]
     
@@ -124,8 +136,9 @@ many_flu <- function(
     demog_flu_vacc_prop <- demog_flu[V==T,]$value/demog_flu[V==T,]$total_as
     
     flu_epid_output <- one_flu(
-      country_code = country, # string, need to choose whether to be country name or iso3c
+      country_code = country, # iso3c string
       demography = demog_flu_pop, # 4-vector of pop sizes
+      demography_dt = demography_dt,
       init_vacc = demog_flu_vacc_prop, 
       susceptibility = epid_data$susceptibility, # in [0,1]
       transmissibility = epid_data$transmissibility, 
@@ -134,7 +147,7 @@ many_flu <- function(
       period_start_date = epid_data$period_start_date,
       epid_start_date = epid_data$epid_start_date,
       end_date = epid_data$end_date, # end of period
-      vaccine_program = vaccine_programs[[2]]
+      vaccine_program = vaccine_program
     )
     
     if(epidemic_i == 1){
@@ -142,7 +155,7 @@ many_flu <- function(
     }else{
       output_dt[,2:13] <- output_dt[,2:13] + flu_epid_output[,2:13]
     }
-    # print(epidemic_i)
+    
   }
   
   output_dt ## return epidemics
@@ -222,13 +235,23 @@ dfn_vaccine_calendar <- function(
     
   ## changin vaccine coverage
   
-  #### HOW DOES VACCINE COVERAGE WORK WHEN THE VACCINE CALENDAR DOESN'T BEGIN ON DAY 1 ####
+  ## check number of weeks matches
+  if((! (length(existing_cov)/no_age_groups) == (length(curr_start) + next_cal)) & 
+     ((length(curr_start) + next_cal) > 0)){
+    warning("Number of vaccination calendars isn't matching!")
+  }
+  existing_cov_curr <- unlist(ifelse((length(curr_start) > 0), 
+                               list(existing_cov[1:4]), list(rep(0,4))))
+  if(next_cal == T){
+    existing_cov_next <- unlist(ifelse((length(curr_start) > 0), 
+                                       list(existing_cov[5:8]), list(existing_cov[1:4])))
+  }
   
   vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- change_coverage(matrix(0, nrow = length(rows_to_vacc_curr), ncol = no_age_groups), 
-                                                                     vacc_cov, existing_cov)
+                                                                     vacc_cov, existing_cov_curr)
   if(next_cal == T){
     vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- change_coverage(matrix(0, nrow = length(rows_to_vacc_next), ncol = no_age_groups), 
-                                                                       vacc_cov, existing_cov)
+                                                                       vacc_cov, existing_cov_next)
   }
   
   vc
