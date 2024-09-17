@@ -5,7 +5,6 @@
 library(data.table)
 library(fluEvidenceSynthesis)
 library(parallel)
-library(patchwork)
 
 # key outputs: vaccine_programs, vacc_type_list
 source('vacc_types.R') 
@@ -46,8 +45,7 @@ epid_dt <- data.table(
   period_start_date = as.Date('01-01-2025',format='%d-%m-%Y'),
   epid_start_date = epid_starts,
   end_date = as.Date('01-01-2031',format='%d-%m-%Y'),
-  vacc_calendar_start = '01-10',
-  vacc_calendar_weeks = 12 # annual
+  r0_to_scale = NA
 )
 
 ageing_date <- '01-04'
@@ -77,46 +75,6 @@ infs_rds_list <- mclapply(1:length(vaccine_programs), flu_parallel, mc.cores=5)
 #### SAVE OUTPUTS ####
 
 saveRDS(infs_rds_list, file = paste0("outputs/vacc_", iso3c,".rds"))
-
-#### PLOTS ####
-
-infs_out <- data.table()
-for(i in 1:length(infs_rds_list)){
-  add_on <- infs_rds_list[[i]]
-  add_on <- add_on[, c('time','vacc_type','I1','I2','I3','I4')]
-  add_on[, tot := I1 + I2 + I3 + I4]
-  infs_out <- rbind(infs_out, add_on)
-}
-
-infs_cum <- infs_out[, c('vacc_type','tot')][, lapply(.SD, cumsum), by=c('vacc_type')]
-infs_cum[, time:=infs_out$time]
-
-# colors
-vt_colors <- c('no_vacc' = '#000000', 'current' = '#d91818', 'improved_minimal' = '#e2790e', 
-               'improved_efficacy' = '#eacb2c', 'improved_breadth' = '#62adc1', 'universal' = '#324da0')
-
-incidence <- ggplot(infs_out) + 
-  geom_line(aes(x=time, y=tot/1000000, col=vacc_type), lwd=0.8) +
-  ylab('Infections (millions)') + xlab('') + 
-  scale_color_manual(values = vt_colors) + 
-  labs(col='Vaccine type') +
-  theme_minimal() + theme(text = element_text(size = 14))
-
-cumulative <- ggplot(infs_cum) + 
-  geom_line(aes(x=time, y=tot/1000000, col=vacc_type), lwd=0.8) +
-  ylab('Cumulative infections (millions)') + xlab('Time') + 
-  labs(col='Vaccine type') + 
-  scale_color_manual(values = vt_colors) + 
-  theme_minimal() + theme(text = element_text(size = 14))
-  
-incidence + cumulative + plot_layout(guides='collect',
-                                     nrow=2)
-
-# side_by_side <- dcast(infs_cum, time ~ vacc_type, value.var = 'tot'); View(side_by_side)
-
-
-
-
 
 
 

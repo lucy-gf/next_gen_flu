@@ -16,6 +16,7 @@ one_flu <- function(
     period_start_date,
     epid_start_date,
     end_date, # end of period
+    intended_r0 = NULL,
     vaccine_program # from vaccine_programs list
     ){
   
@@ -63,16 +64,21 @@ one_flu <- function(
     country_name_altern_2 = country_itzs_names[country %like% country_name]$country_altern_2,
     pop_model = demography
   )
-  # transform to per capita contacts
+  ## transform to per capita contacts
   contact_matrix_small <- t(t(contact_matrix)/demography) 
   
-  r0 <- fluEvidenceSynthesis::as_R0(
+  ## scale to match a given r0 if necessary
+  current_r0 <- fluEvidenceSynthesis::as_R0(
     transmission_rate = transmissibility,
     contact_matrix = contact_matrix_small,
     age_groups = demography*c((0.2*1 + 0.8*susceptibility),
                               rep(susceptibility,3))
   )
-  print(paste0('R0 = ', r0))
+  # print(paste0('R0 = ', current_r0))
+  if(is.na(intended_r0)){ intended_r0 <- NULL }
+  if(!is.null(intended_r0)){
+    contact_matrix_small <- contact_matrix_small*(intended_r0/current_r0)
+  }
   
   dt <- incidence_VS(
     demography_input = demography,
@@ -147,6 +153,7 @@ many_flu <- function(
       period_start_date = epid_data$period_start_date,
       epid_start_date = epid_data$epid_start_date,
       end_date = epid_data$end_date, # end of period
+      intended_r0 = epid_data$r0_to_scale,
       vaccine_program = vaccine_program
     )
     
@@ -161,11 +168,6 @@ many_flu <- function(
   output_dt ## return epidemics
   
 }
-
-
-# ggplot(demography_dt[V==T & year<2028]) +
-#   geom_line(aes(x=week,y=value,col=age_grp), lwd=0.8) +
-#   theme_minimal()
 
 
 #### ADDITIONAL FUNCTIONS ####
@@ -274,13 +276,32 @@ last_monday <- function(date){
   
 }
 
-
-
-
-# ## function to calculate vaccine doses over same period
-# flu_doses <- function(){
-#   
-# }
+## function to calculate vaccine doses over same period
+flu_doses <- function(
+    country,
+    ageing, # = T/F
+    ageing_date = NULL, # e.g. '01-04'
+    epid_inputs, # data.table of vectors of inputs for one_flu
+    vaccine_program,
+    model_age_groups){
+  
+  dates_many_flu <- seq.Date(last_monday(min(epid_inputs$period_start_date)), 
+                             last_monday(max(epid_inputs$end_date)), 
+                             by=7)
+  
+  doses <- fcn_annual_doses(
+    country,
+    ageing = T,
+    ageing_date,
+    dates_in = dates_many_flu,
+    demographic_start_year = year(min(epid_inputs$period_start_date)),
+    vaccine_program,
+    init_vaccinated = c(0,0,0,0),
+    model_age_groups
+  )
+  
+  doses
+}
 
 
 

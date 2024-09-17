@@ -30,4 +30,8 @@ Contains:
 
 ### `flu_parallel.R`
 
-Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type
+Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type.
+
+### `flu_plots.R`
+
+Plots influenza incidence and cumulative infections.

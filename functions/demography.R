@@ -90,6 +90,13 @@ fcn_weekly_demog <- function(country,
                              init_vaccinated,
                              model_age_groups){
   
+  if((ageing == T) & (is.null(ageing_date))){
+    stop('Needs an ageing date.')
+  }
+  if(ageing == F){
+    ageing_date <- '14-02'
+  } # setting arbitrary date
+  
   ## SETTING DEMOGRAPHIC PARAMETERS
   country_name <- countrycode(country, origin='iso3c', destination='country.name')
   start_pop <- fcn_pop_model(country_name, year(dates_in[1]))
@@ -101,6 +108,10 @@ fcn_weekly_demog <- function(country,
                         (1-mort_vec[1])*ageing_vec[1], (1-ageing_vec[2])*(1-mort_vec[2]), 0, 0,
                         0, (1-mort_vec[2])*ageing_vec[2], (1-ageing_vec[3])*(1-mort_vec[3]), 0,
                         0, 0, (1-mort_vec[3])*ageing_vec[3], (1-ageing_vec[4])*(1-mort_vec[4])), nrow=4)
+  if(ageing == F){
+    CBR <- 0
+    RH_matrix <- diag(1, nrow=4)
+  } # enforcing no demographic changes
   
   ## VE - arbitrary
   efficacy_input <- c(0,0,0,0)
@@ -129,15 +140,12 @@ fcn_weekly_demog <- function(country,
   start_year <- year(dates_in[1])
   end_year <- year(dates_in[length(dates_in)])
   vacc_date <- as.Date(paste0(vaccine_program$start, '-', start_year), format ='%d-%m-%Y')
-  if(ageing){
-    ageing_y1 <- as.Date(paste0(ageing_date, '-', start_year), format ='%d-%m-%Y')
-  }else{ageing_y1 <- NULL}
   
   dates <- sort(c(as.Date(paste0(vaccine_program$start, '-', start_year:end_year), format ='%d-%m-%Y'),
                   as.Date(paste0(ageing_date, '-', start_year:end_year), format ='%d-%m-%Y')))
+  vacc_first <- isTRUE(paste0(day(dates[1]), '-', month(dates[1])) == vaccine_program$start)
   dates <- as.Date(unlist(lapply(dates, last_monday)))
   dates <- dates[dates %in% seq.Date(dates_in[1], dates_in[length(dates_in)], by=1)]
-  vacc_first <- isTRUE(vacc_date == dates[1]) # equiv to hemisphere == 'SH'
   
   ## FILLING FIRST SECTION 
   days1 <- seq.Date(from = output$week[1], to = dates[1] + 6, by = 1) # days 1-by-1
@@ -530,25 +538,409 @@ fcn_contact_matrix <- function(country_name, country_name_altern,
   return(contact_matrix_output)
 }
 
-## function to scale to match a given r0?
-# fcn_scale_r0 <- function(){
-#   
-# }
 
+#### ANNUAL VACCINE DOSES ####
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## function ##
+fcn_annual_doses <- function(country,
+                             ageing,
+                             ageing_date = NULL, 
+                             dates_in,
+                             demographic_start_year,
+                             vaccine_program,
+                             init_vaccinated,
+                             model_age_groups){
+  
+  if((ageing == T) & (is.null(ageing_date))){
+    stop('Needs an ageing date.')
+  }
+  if(ageing == F){
+    ageing_date <- '14-02'
+  } # setting arbitrary date
+  
+  ## SETTING DEMOGRAPHIC PARAMETERS
+  country_name <- countrycode(country, origin='iso3c', destination='country.name')
+  start_pop <- fcn_pop_model(country_name, year(dates_in[1]))
+  pars <- demog_data[demog_data$country %in% country_name,]
+  CBR <- pars$CBR; M1 <- pars$M1; M2 <- pars$M2; M3 <- pars$M3; M4 <- pars$M4
+  ageing_vec <- c(1/(model_age_groups[2:4] - model_age_groups[1:3]), 0) 
+  mort_vec <- c(M1, M2, M3, M4)
+  RH_matrix <- matrix(c((1-ageing_vec[1])*(1-mort_vec[1]), 0, 0, 0,
+                        (1-mort_vec[1])*ageing_vec[1], (1-ageing_vec[2])*(1-mort_vec[2]), 0, 0,
+                        0, (1-mort_vec[2])*ageing_vec[2], (1-ageing_vec[3])*(1-mort_vec[3]), 0,
+                        0, 0, (1-mort_vec[3])*ageing_vec[3], (1-ageing_vec[4])*(1-mort_vec[4])), nrow=4)
+  if(ageing == F){
+    CBR <- 0
+    RH_matrix <- diag(1, nrow=4)
+  } # enforcing no demographic changes
+  
+  ## VE - arbitrary
+  efficacy_input <- c(0,0,0,0)
+  waning <- 1/(365*vacc_type_list[[vaccine_program$vacc_type]]$imm_duration)
+  
+  # arbitrary, doesn't matter what it is
+  contact_matrix_input <- fcn_contact_matrix(country_name = 'France',
+                                             country_name_altern = NA,
+                                             country_name_altern_2 = NA,
+                                             pop_model = c(10,10,10,10)) 
+  
+  ## MAKING OUTPUT MATRIX
+  output <- data.frame(country = country[1],
+                       week = dates_in,
+                       U1 = NA, U2 = NA, U3 = NA, U4 = NA,
+                       V1 = NA, V2 = NA, V3 = NA, V4 = NA,
+                       vaccs1 = NA, vaccs2 = NA, vaccs3 = NA, vaccs4 = NA)
+  output <- output %>% mutate(year = year(week)) %>% select(country, year, week,
+                                                            U1, V1, U2, V2, U3, V3, U4, V4,
+                                                            vaccs1, vaccs2, vaccs3, vaccs4)
+  columns <- c('U1', 'V1', 'U2', 'V2', 'U3', 'V3', 'U4', 'V4',
+               'vaccs1', 'vaccs2', 'vaccs3', 'vaccs4') 
+  
+  ## INIT CONDITIONS
+  output[1,c('V1','V2','V3','V4')] <- start_pop*init_vaccinated
+  output[1,c('U1','U2','U3','U4')] <- start_pop - output[1,c('V1','V2','V3','V4')] 
+  
+  ## SETTING ACTION DATES
+  start_year <- year(dates_in[1])
+  end_year <- year(dates_in[length(dates_in)])
+  vacc_date <- as.Date(paste0(vaccine_program$start, '-', start_year), format ='%d-%m-%Y')
+  
+  dates <- sort(c(as.Date(paste0(vaccine_program$start, '-', start_year:end_year), format ='%d-%m-%Y'),
+                  as.Date(paste0(ageing_date, '-', start_year:end_year), format ='%d-%m-%Y')))
+  vacc_first <- isTRUE(paste0(day(dates[1]), '-', month(dates[1])) == vaccine_program$start)
+  dates <- as.Date(unlist(lapply(dates, last_monday)))
+  dates <- dates[dates %in% seq.Date(dates_in[1], dates_in[length(dates_in)], by=1)]
+  
+  ## FILLING FIRST SECTION 
+  days1 <- seq.Date(from = output$week[1], to = dates[1] + 6, by = 1) # days 1-by-1
+  dates_to_run <- seq.Date(from = days1[1], 
+                           to = days1[length(days1)],
+                           by = 7) # days by week
+  # def no vaccination in first section
+  coverage_matrix0 <- matrix(0, nrow = length(dates_to_run), ncol = 4)
+  vaccine_calendar0 <- as_vaccination_calendar(
+    efficacy = rep(0.5, 4),
+    dates = dates_to_run,
+    coverage = coverage_matrix0,
+    no_age_groups = 4, no_risk_groups=1
+  )
+  
+  pop1 <- output[1,]
+  input1 <- fcn_vaccinated_demography_doses(
+    demography_input = fcn_yr_res_pop(pop1),
+    calendar_input = vaccine_calendar0,
+    contacts = contact_matrix_input, 
+    waning_rate = waning, 
+    vaccination_ratio_input = fcn_vri(pop1),
+    begin_date = dates_to_run[1], 
+    end_date = dates_to_run[length(dates_to_run)],  
+    age_groups_model = c(0,5,20,65)
+  ) %>% mutate(t = as.Date(t))
+  output[output$week %in% dates_to_run,columns] <- input1 %>% select(!c(t))
+  action_week <- dates_to_run[length(dates_to_run)]
+  
+  if(vacc_first == F){
+    births <- CBR*sum(output[output$week == action_week,columns])
+    output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')] <- c(births,0,0,0) + unname(unlist(output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')]))%*%RH_matrix
+    output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')] <- unname(unlist(output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')]))%*%RH_matrix
+    days2 <- seq.Date(from = action_week, to = dates[2] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = c(0,0,0,0),
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }else{
+    days2 <- seq.Date(from = action_week, to = dates[2] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = vaccine_program$pop_coverage,
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }
+  action_week <- dates_to_run[length(dates_to_run)]
+  
+  if(vacc_first == T){
+    births <- CBR*sum(output[output$week == action_week,columns])
+    output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')] <- c(births,0,0,0) + unname(unlist(output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')]))%*%RH_matrix
+    output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')] <- unname(unlist(output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')]))%*%RH_matrix
+    days2 <- seq.Date(from = action_week, to = dates[3] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = c(0,0,0,0),
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }else{
+    days2 <- seq.Date(from = action_week, to = dates[3] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = vaccine_program$pop_coverage,
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }
+  action_week <- dates_to_run[length(dates_to_run)]
+  
+  if(length(dates)>3){
+    for(loop_index in 3:(length(dates) - 1)){
+      if((vacc_first + loop_index) %% 2 == 1){
+        births <- CBR*sum(output[output$week == action_week,columns])
+        output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')] <- c(births,0,0,0) + unname(unlist(output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')]))%*%RH_matrix
+        output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')] <- unname(unlist(output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')]))%*%RH_matrix
+        days2 <- seq.Date(from = action_week, to = dates[loop_index + 1] + 6, by = 1) 
+        dates_to_run <- seq.Date(from = days2[1], 
+                                 to = days2[length(days2)],
+                                 by = 7) # days by week
+        pop2 <- output[output$week == action_week,]
+        
+        calendar_input <- dfn_vaccine_calendar(
+          vacc_cov = c(0,0,0,0),
+          existing_cov = fcn_vri(pop2),
+          dates_to_run = dates_to_run,
+          efficacy = efficacy_input,
+          no_age_groups = length(start_pop),
+          no_risk_groups = 1,
+          vacc_calendar_start = vaccine_program$start,
+          vacc_calendar_weeks = vaccine_program$weeks,
+          next_cal = F
+        )
+        
+        input2 <- fcn_vaccinated_demography_doses(
+          demography_input = fcn_yr_res_pop(pop2),
+          calendar_input = calendar_input,
+          contacts = contact_matrix_input, 
+          waning_rate = waning, 
+          vaccination_ratio_input = fcn_vri(pop2),
+          begin_date = dates_to_run[1], 
+          end_date = dates_to_run[length(dates_to_run)],  
+          age_groups_model = c(0,5,20,65)
+        ) %>% mutate(t = as.Date(t))
+        
+        output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+      }else{
+        days2 <- seq.Date(from = action_week, to = dates[loop_index + 1] + 6, by = 1) 
+        dates_to_run <- seq.Date(from = days2[1], 
+                                 to = days2[length(days2)],
+                                 by = 7) # days by week
+        pop2 <- output[output$week == action_week,]
+        
+        calendar_input <- dfn_vaccine_calendar(
+          vacc_cov = vaccine_program$pop_coverage,
+          existing_cov = fcn_vri(pop2),
+          dates_to_run = dates_to_run,
+          efficacy = efficacy_input,
+          no_age_groups = length(start_pop),
+          no_risk_groups = 1,
+          vacc_calendar_start = vaccine_program$start,
+          vacc_calendar_weeks = vaccine_program$weeks,
+          next_cal = F
+        )
+        
+        input2 <- fcn_vaccinated_demography_doses(
+          demography_input = fcn_yr_res_pop(pop2),
+          calendar_input = calendar_input,
+          contacts = contact_matrix_input, 
+          waning_rate = waning, 
+          vaccination_ratio_input = fcn_vri(pop2),
+          begin_date = dates_to_run[1], 
+          end_date = dates_to_run[length(dates_to_run)],  
+          age_groups_model = c(0,5,20,65)
+        ) %>% mutate(t = as.Date(t))
+        
+        output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+      }
+      action_week <- dates_to_run[length(dates_to_run)]
+    }
+  }
+  
+  ## FILLING IN FINAL SECTION
+  if(vacc_first == T){
+    births <- CBR*sum(output[output$week == action_week,columns])
+    output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')] <- c(births,0,0,0) + unname(unlist(output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')]))%*%RH_matrix
+    output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')] <- unname(unlist(output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')]))%*%RH_matrix
+    days2 <- seq.Date(from = action_week, to = output$week[nrow(output)] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = c(0,0,0,0),
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }else{
+    days2 <- seq.Date(from = action_week, to = output$week[nrow(output)] + 6, by = 1) 
+    dates_to_run <- seq.Date(from = days2[1], 
+                             to = days2[length(days2)],
+                             by = 7) # days by week
+    pop2 <- output[output$week == action_week,]
+    
+    calendar_input <- dfn_vaccine_calendar(
+      vacc_cov = vaccine_program$pop_coverage,
+      existing_cov = fcn_vri(pop2),
+      dates_to_run = dates_to_run,
+      efficacy = efficacy_input,
+      no_age_groups = length(start_pop),
+      no_risk_groups = 1,
+      vacc_calendar_start = vaccine_program$start,
+      vacc_calendar_weeks = vaccine_program$weeks,
+      next_cal = F
+    )
+    
+    input2 <- fcn_vaccinated_demography_doses(
+      demography_input = fcn_yr_res_pop(pop2),
+      calendar_input = calendar_input,
+      contacts = contact_matrix_input, 
+      waning_rate = waning, 
+      vaccination_ratio_input = fcn_vri(pop2),
+      begin_date = dates_to_run[1], 
+      end_date = dates_to_run[length(dates_to_run)],  
+      age_groups_model = c(0,5,20,65)
+    ) %>% mutate(t = as.Date(t))
+    
+    output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
+  }
+  
+  wasted <- output %>% mutate(
+    vaccs1nocum = vaccs1 - lag(vaccs1),
+    vaccs2nocum = vaccs2 - lag(vaccs2),
+    vaccs3nocum = vaccs3 - lag(vaccs3),
+    vaccs4nocum = vaccs4 - lag(vaccs4),
+    uvaccs1nocum = vaccs1 - lead(vaccs1),
+    uvaccs2nocum = vaccs2 - lead(vaccs2),
+    uvaccs3nocum = vaccs3 - lead(vaccs3),
+    uvaccs4nocum = vaccs4 - lead(vaccs4)
+  ) %>% filter((vaccs1nocum + uvaccs1nocum +
+                  vaccs2nocum + uvaccs2nocum +
+                  vaccs3nocum + uvaccs3nocum +
+                  vaccs4nocum + uvaccs4nocum) < 0 & 
+                 (vaccs1nocum + vaccs2nocum + vaccs3nocum + vaccs4nocum >= 0)) %>% 
+    group_by(year) %>% mutate(
+      totv1 = sum(vaccs1nocum), totv2 = sum(vaccs2nocum), 
+      totv3 = sum(vaccs3nocum), totv4 = sum(vaccs4nocum),
+    ) %>% ungroup() %>% mutate(
+      year_lag = year - lag(year)
+    ) %>% filter(is.na(year_lag) | year_lag == 1) %>% mutate(
+      wasted1 = V1*totv1/U1, wasted2 = V2*totv2/U2,
+      wasted3 = V3*totv3/U3, wasted4 = V4*totv4/U4
+    ) %>% select(year, totv1, totv2, totv3, totv4, wasted1, wasted2, wasted3, wasted4)
+  
+  wasted <- data.table(wasted)
+  
+  return(wasted)
+  
+}
