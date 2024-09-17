@@ -18,6 +18,9 @@ for(i in 1:length(infs_rds_list)){
 infs_cum <- infs_out[, c('vacc_type','tot')][, lapply(.SD, cumsum), by=c('vacc_type')]
 infs_cum[, time:=infs_out$time]
 
+infs_out$vacc_type <- factor(infs_out$vacc_type, levels=unique(infs_out$vacc_type))
+infs_cum$vacc_type <- factor(infs_cum$vacc_type, levels=unique(infs_cum$vacc_type))
+
 # colors
 vt_colors <- c('no_vacc' = '#000000', 'current' = '#d91818', 'improved_minimal' = '#e2790e', 
                'improved_efficacy' = '#eacb2c', 'improved_breadth' = '#62adc1', 'universal' = '#324da0')
