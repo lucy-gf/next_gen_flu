@@ -1,17 +1,18 @@
 #### RUN THE FLU MODEL ####
 
-# setwd("~/Desktop/research asst/next_gen_flu")
-
 library(data.table)
 library(fluEvidenceSynthesis)
 library(parallel)
 
 # key outputs: vaccine_programs, vacc_type_list
-source('vacc_types.R') 
+# source('vacc_types.R') 
+source(here::here('next_gen_flu','vacc_types.R'))
 # will calculate weekly age- and vaccine-specific population, also loads transmission model
-source('functions/demography.R') 
+# source('functions/demography.R') 
+source(here::here('next_gen_flu','functions','demography.R'))
 # runs the flu model
-source('functions/flu_sim.R') 
+# source('functions/flu_sim.R') 
+source(here::here('next_gen_flu','functions','flu_sim.R'))
 
 #### VACCINE PROGRAM DETAILS ####
 cov_main <- 0.5 # coverage level in targeted age groups
