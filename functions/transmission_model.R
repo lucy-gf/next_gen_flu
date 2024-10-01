@@ -40,7 +40,7 @@ incidence_VS <- function(
     }
   }
   
-  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*VE)) > 0){
+  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*calendar_input$efficacy[1:4])) > 0){
     stop('More initial infecteds than susceptibles')
   }
   
@@ -271,7 +271,7 @@ fcn_vaccinated_demography <- function(
     }
   }
   
-  if(sum(initial_infected_vector[1:4] > population_stratified[1:4]*(1 - vaccination_ratio_input*VE)) > 0){
+  if(sum(initial_infected_vector[1:4] > population_stratified[1:4]*(1 - vaccination_ratio_input*calendar_input$efficacy[1:4])) > 0){
     stop('More initial infecteds than susceptibles')
   }
   
@@ -350,7 +350,7 @@ fcn_vaccinated_demography_doses <- function(
     }
   }
   
-  if(sum(initial_infected_vector[1:4] > population_stratified[1:4]*(1 - vaccination_ratio_input*VE)) > 0){
+  if(sum(initial_infected_vector[1:4] > population_stratified[1:4]*(1 - vaccination_ratio_input*calendar_input$efficacy[1:4])) > 0){
     stop('More initial infecteds than susceptibles')
   }
   

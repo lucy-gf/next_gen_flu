@@ -28,7 +28,7 @@ one_flu <- function(
   end_date <- last_monday(end_date)
   
   vacc_details <- vacc_type_list[[vaccine_program$vacc_type]]
-  efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - match)], 3), vacc_details$VE[2 + 2*(1 - match)])
+  efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - matching)], 3), vacc_details$VE[2 + 2*(1 - matching)])
   vacc_rel_inf <- vacc_details$rel_inf
   vacc_calendar_start <- vaccine_program$start
   vacc_calendar_weeks <- vaccine_program$weeks
