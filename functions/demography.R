@@ -5,14 +5,12 @@ library(readr)
 library(wpp2022)
 data(popF); data(popM)
 
-source('functions/transmission_model.R')
-source('functions/contact_matr_fcns.R')
-
-model_age_groups <- c(0,5,20,65)
+source(here::here('next_gen_flu','functions','transmission_model.R'))
+source(here::here('next_gen_flu','functions','contact_matr_fcns.R'))
 
 #### POPULATION SIZE FUNCTIONS  ####
-pop_hist_WPP_data <- data.table(read_csv('data/pop_hist_WPP_data.csv', show_col_types = F))
-pop_proj_WPP_data <- data.table(read_csv('data/pop_proj_WPP_data.csv', show_col_types = F))
+pop_hist_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_hist_WPP_data.csv'), show_col_types = F))
+pop_proj_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_proj_WPP_data.csv'), show_col_types = F))
 
 fcn_pop_all <- function(country, year_demog = 2025){
   if(year_demog < 2022){
@@ -78,7 +76,7 @@ fcn_vri <- function(pop){
 #   demog_data$M4[i] <- 1/(country_input[x == 65])$LEx
 # }
 # write_csv(demog_data, 'data/demog_data.csv')
-demog_data <- data.table(read_csv('data/demog_data.csv', show_col_types=F))
+demog_data <- data.table(read_csv(here::here('next_gen_flu','data','demog_data.csv'), show_col_types = F))
 
 ## function ##
 fcn_weekly_demog <- function(country,
@@ -98,9 +96,13 @@ fcn_weekly_demog <- function(country,
   } # setting arbitrary date
   
   ## SETTING DEMOGRAPHIC PARAMETERS
-  country_name <- countrycode(country, origin='iso3c', destination='country.name')
-  start_pop <- fcn_pop_model(country_name, year(dates_in[1]))
-  pars <- demog_data[demog_data$country %in% country_name,]
+  country_name <- ifelse(country=='XKX', 'Kosovo', countrycode(country, origin='iso3c', destination='country.name'))
+  country_names <- unname(unlist(country_itzs_names[country==country_name, c('country','country_altern','country_altern_2')]))
+  if(length(country_names)==0){
+    country_names <- unname(unlist(country_itzs_names[country_altern==country_name, c('country','country_altern','country_altern_2')]))
+  }
+  start_pop <- fcn_pop_model(country_names, year(dates_in[1])) 
+  pars <- demog_data[demog_data$country %in% country_names,]
   CBR <- pars$CBR; M1 <- pars$M1; M2 <- pars$M2; M3 <- pars$M3; M4 <- pars$M4
   ageing_vec <- c(1/(model_age_groups[2:4] - model_age_groups[1:3]), 0) 
   mort_vec <- c(M1, M2, M3, M4)
@@ -152,7 +154,7 @@ fcn_weekly_demog <- function(country,
   dates_to_run <- seq.Date(from = days1[1], 
                            to = days1[length(days1)],
                            by = 7) # days by week
-  # def no vaccination in first section
+  # definitely no vaccination in first section
   coverage_matrix0 <- matrix(0, nrow = length(dates_to_run), ncol = 4)
   vaccine_calendar0 <- as_vaccination_calendar(
     efficacy = rep(0.5, 4),
@@ -217,7 +219,7 @@ fcn_weekly_demog <- function(country,
     pop2 <- output[output$week == action_week,]
     
     calendar_input <- dfn_vaccine_calendar(
-      vacc_cov = vaccine_program$pop_coverage,
+      vacc_cov = unname(unlist(vaccine_program$pop_coverage[year==year(dates_to_run[1]), 2:5])),
       existing_cov = fcn_vri(pop2),
       dates_to_run = dates_to_run,
       efficacy = efficacy_input,
@@ -285,7 +287,7 @@ fcn_weekly_demog <- function(country,
     pop2 <- output[output$week == action_week,]
     
     calendar_input <- dfn_vaccine_calendar(
-      vacc_cov = vaccine_program$pop_coverage,
+      vacc_cov = unname(unlist(vaccine_program$pop_coverage[year==year(dates_to_run[1]), 2:5])),
       existing_cov = fcn_vri(pop2),
       dates_to_run = dates_to_run,
       efficacy = efficacy_input,
@@ -355,7 +357,7 @@ fcn_weekly_demog <- function(country,
       pop2 <- output[output$week == action_week,]
       
       calendar_input <- dfn_vaccine_calendar(
-        vacc_cov = vaccine_program$pop_coverage,
+        vacc_cov = unname(unlist(vaccine_program$pop_coverage[year==year(dates_to_run[1]), 2:5])),
         existing_cov = fcn_vri(pop2),
         dates_to_run = dates_to_run,
         efficacy = efficacy_input,
@@ -426,7 +428,7 @@ fcn_weekly_demog <- function(country,
     pop2 <- output[output$week == action_week,]
     
     calendar_input <- dfn_vaccine_calendar(
-      vacc_cov = vaccine_program$pop_coverage,
+      vacc_cov = unname(unlist(vaccine_program$pop_coverage[year==year(dates_to_run[1]), 2:5])),
       existing_cov = fcn_vri(pop2),
       dates_to_run = dates_to_run,
       efficacy = efficacy_input,
@@ -472,7 +474,7 @@ fcn_weekly_demog <- function(country,
 
 
 #### CONTACT MATRICES ####
-load("data/contact_all.rdata")
+load(here::here('next_gen_flu','data','contact_all.rdata'))
 
 fcn_contact_matrix <- function(country_name, country_name_altern,
                                country_name_altern_2, pop_model){

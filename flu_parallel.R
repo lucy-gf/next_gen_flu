@@ -1,82 +1,62 @@
 #### RUN THE FLU MODEL ####
 
-library(data.table)
-library(fluEvidenceSynthesis)
-library(parallel)
-
 # key outputs: vaccine_programs, vacc_type_list
-# source('vacc_types.R') 
 source(here::here('next_gen_flu','vacc_types.R'))
 # will calculate weekly age- and vaccine-specific population, also loads transmission model
-# source('functions/demography.R') 
 source(here::here('next_gen_flu','functions','demography.R'))
 # runs the flu model
-# source('functions/flu_sim.R') 
 source(here::here('next_gen_flu','functions','flu_sim.R'))
-
-#### VACCINE PROGRAM DETAILS ####
-cov_main <- 0.5 # coverage level in targeted age groups
-age_targeting <- 0:17 # ages being targeted
-vacc_calendar_start <- '01-10'
-vacc_calendar_weeks <- 12
-
-vaccine_programs <- c(
-  fcn_vacc_prog(NA, 0,
-                vacc_calendar_start, 
-                vacc_calendar_weeks,
-                T),
-  fcn_vacc_prog(age_targeting, cov_main,
-                vacc_calendar_start, 
-                vacc_calendar_weeks)
-)
-
-## MODEL AGE GROUPS - fixed ##
-model_age_groups <- c(0,5,20,65)
-age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99))
-# could generalise across more/different age groups, not done though.
-
-#### EPIDEMIC DATA ####
-epid_starts <- c(as.Date(paste0('01-11-', 2025:2029), format='%d-%m-%Y'))
-epid_dt <- data.table(
-  susceptibility = c(0.6,0.59,0.7,0.65,0.61),
-  transmissibility = c(0.09,0.08,0.075,0.075,0.08),
-  match = c(T,F,F,T,F),
-  initial_infected = c(list(c(100,100,100,100)),list(c(100,100,100,100)),list(c(100,100,100,100)),
-                       list(c(100,100,100,100)),list(c(100,100,100,100))),
-  period_start_date = as.Date('01-01-2025',format='%d-%m-%Y'),
-  epid_start_date = epid_starts,
-  end_date = as.Date('01-01-2031',format='%d-%m-%Y'),
-  r0_to_scale = NA
-)
-
-ageing_date <- '01-04'
-iso3c <- 'GBR'
 
 #### FUNCTION TO RUN ####
 ## only input is vaccine type, to parallelise over vt ##
 flu_parallel <- function(vaccine_type){
-
-  mf_output <- many_flu(country = iso3c,
-                        ageing = T, 
-                        ageing_date,
-                        epid_inputs = epid_dt,  
-                        vaccine_program = vaccine_programs[[vaccine_type]],
-                        model_age_groups
-                        )
+  total_start_time <- Sys.time()
   
-  mf_output[, vacc_type := names(vaccine_programs)[vaccine_type]]
-
+  dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
+           last_monday(max(epid_dt$end_date)), 
+           by=7)
+  
+  ## vaccination and ageing
+  demography_dt <- fcn_weekly_demog(
+    iso3c_input,
+    ageing,
+    ageing_date,
+    dates_in = dates_many_flu,
+    demographic_start_year = start_year_of_analysis,
+    vaccine_programs[[vaccine_type]],
+    init_vaccinated = c(0,0,0,0),
+    model_age_groups
+  )
+  
+  mf_output <- data.table()
+  
+  for(sim_index in unique(epid_dt$simulation_index)){
+    start_time <- Sys.time()
+    
+    mf_output_si <- many_flu(country = iso3c_input,
+                          ageing = T, 
+                          ageing_date,
+                          epid_inputs = epid_dt[simulation_index==sim_index],  
+                          vaccine_program = vaccine_programs[[vaccine_type]],
+                          model_age_groups,
+                          demography_dt
+    )
+    mf_output_si[, vacc_type := names(vaccine_programs)[vaccine_type]]
+    mf_output_si[, simulation_index := sim_index]
+    if(nrow(mf_output)==0){
+      mf_output <- mf_output_si
+    }else{
+      mf_output <- rbind(mf_output, mf_output_si)
+    }
+    
+    write.table(paste0(iso3c_input, ', ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
+                 ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
+                ', total time on country = ', round(Sys.time() - total_start_time,2)),
+                file = here::here('output','data','epi',paste0(itz_input),paste0(vaccine_type, '_text.txt')))
+  }
+  
+  mf_output
 }
-
-#### RUN OUTPUTS #### 
-## (parallelised across all vaccine types) ##
-
-infs_rds_list <- mclapply(1:length(vaccine_programs), flu_parallel, mc.cores=5)
-
-#### SAVE OUTPUTS ####
-
-saveRDS(infs_rds_list, file = paste0("outputs/vacc_", iso3c,".rds"))
-
 
 
 

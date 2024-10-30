@@ -83,7 +83,43 @@ fcn_vacc_prog <- function(target_ages, cov_input,
   output_list 
 }
 
+make_cov_matrix <- function(cov_input){
+  data.table(cov_input %>% select(year,age_grp,cov) %>% 
+    pivot_wider(id_cols=year,names_from=age_grp,names_prefix='age_grp_',values_from = cov))
+}
 
+fcn_vacc_prog_mmgh <- function(cov_input, # matrix
+                               vacc_calendar_start,
+                               vacc_calendar_weeks
+                               ){
+  
+  cov1_matrix <- make_cov_matrix(cov_input[vaccine==1])
+  cov2_matrix <- make_cov_matrix(cov_input[vaccine==2])
+  cov0_matrix <- cov1_matrix
+  cov0_matrix[, c('age_grp_1','age_grp_2','age_grp_3','age_grp_4') := 0]
+  
+  output_list <- list(
+      c(list(pop_coverage = cov0_matrix,
+             vacc_type = 'current',
+             start = vacc_calendar_start,
+             weeks = vacc_calendar_weeks)))
+  
+  # TODO - check which vaccine types each MMGH vaccine number applies to!
+  for(vt in names(vacc_type_list)){
+    output_list <- c(output_list,
+                     list(list(pop_coverage = case_when(vt=='current' ~ cov1_matrix,
+                                                        !vt=='current' ~ cov2_matrix),
+                               vacc_type = vt,
+                               start = vacc_calendar_start,
+                               weeks = vacc_calendar_weeks
+                     )
+                     )
+    )
+  }
+  
+  names(output_list) <- c('no_vacc', names(vacc_type_list))
+  output_list 
+}
 
 
 

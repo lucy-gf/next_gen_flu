@@ -1,7 +1,7 @@
 #### MAIN FLU SIMULATION FUNCTIONS ####
 
 library(countrycode)
-country_itzs_names <- data.table(read_csv('data/country_itzs_names.csv', show_col_types=F))
+country_itzs_names <- data.table(read_csv('next_gen_flu/data/country_itzs_names.csv', show_col_types=F))
 
 ## function to simulate one epidemic
 one_flu <- function(
@@ -45,10 +45,17 @@ one_flu <- function(
   existing_cov_list <- c(
     demography_dt[week %in% c(week1,week2) & V==T,]$value/demography_dt[week %in% c(week1,week2) & V==T,]$total_as
   )
-    
+  
+  key_vacc_date <- case_when(month(epid_start_date) <= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date) - 1,
+                             month(epid_start_date) > as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date),
+                             month(epid_start_date) <= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date),
+                             month(epid_start_date) > as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date) + 1)
+  if(key_vacc_date < min(vaccine_program$pop_coverage$year)){key_vacc_date <- min(vaccine_program$pop_coverage$year)}
+  if(key_vacc_date > max(vaccine_program$pop_coverage$year)){key_vacc_date <- max(vaccine_program$pop_coverage$year)}
+  
   # define vaccine calendar
   calendar_input <- dfn_vaccine_calendar(
-    vacc_cov = vaccine_program$pop_coverage,
+    vacc_cov = unname(unlist(vaccine_program$pop_coverage[year==key_vacc_date, 2:5])),
     existing_cov = existing_cov_list,
     dates_to_run = seq.Date(epid_start_date, end_date, 7),
     efficacy = efficacy_input,
@@ -96,12 +103,16 @@ one_flu <- function(
   )
   
   ## merging into total time period ##
-  time_before <- seq.Date(period_start_date, (epid_start_date-1), by=7)
-  output <- rbind(data.table(time = time_before, 
-                       I1 = 0, I2 = 0, I3 = 0, I4 = 0,
-                       IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
-                       IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0), dt)
-  
+  if(!epid_start_date==period_start_date){
+    time_before <- seq.Date(period_start_date, (epid_start_date-1), by=7)
+    output <- rbind(data.table(time = time_before, 
+                               I1 = 0, I2 = 0, I3 = 0, I4 = 0,
+                               IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
+                               IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0), dt)
+  }else{
+    output <- dt
+  }
+
   output
 }
 
@@ -113,24 +124,13 @@ many_flu <- function(
     ageing_date = NULL, # e.g. '01-04'
     epid_inputs, # data.table of vectors of inputs for one_flu
     vaccine_program,
-    model_age_groups
+    model_age_groups,
+    demography_dt
     ){
   
   dates_many_flu <- seq.Date(last_monday(min(epid_inputs$period_start_date)), 
                     last_monday(max(epid_inputs$end_date)), 
                     by=7)
-  
-  ## vaccination and ageing
-  demography_dt <- fcn_weekly_demog(
-    country,
-    ageing,
-    ageing_date,
-    dates_in = dates_many_flu,
-    demographic_start_year = year(min(epid_inputs$period_start_date)),
-    vaccine_program,
-    init_vaccinated = c(0,0,0,0),
-    model_age_groups
-  )
   
   output_dt <- data.table()
   for(epidemic_i in 1:nrow(epid_inputs)){ 
@@ -149,7 +149,7 @@ many_flu <- function(
       susceptibility = epid_data$susceptibility, # in [0,1]
       transmissibility = epid_data$transmissibility, 
       matching = epid_data$match,
-      initial_infected = unlist(epid_data$initial_infected), # 4-vector
+      initial_infected = rep(epid_data$initial_infected, 4), # 4-vector
       period_start_date = epid_data$period_start_date,
       epid_start_date = epid_data$epid_start_date,
       end_date = epid_data$end_date, # end of period
@@ -201,7 +201,7 @@ dfn_vaccine_calendar <- function(
     )
   {
   
-  dates_to_run <- as.Date(unlist(lapply(dates_to_run, last_monday)))
+  dates_to_run <- last_monday(dates_to_run)
   
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
   
@@ -228,6 +228,10 @@ dfn_vaccine_calendar <- function(
     rows_to_vacc_curr <- 0
   }
   
+  if(length(curr_start) > 0 & year(curr_start[1]) == start_year_of_analysis + years_of_analysis - 1){
+    next_cal <- F
+  }
+  
   ## *next* vaccine calendar:
   next_start <- possible_start_dates[possible_start_dates - dates_to_run[1] <= (365+6) &
                                        possible_start_dates - dates_to_run[1] > 0]
@@ -235,7 +239,7 @@ dfn_vaccine_calendar <- function(
   dates_to_vacc_next <- seq.Date(next_start, next_start + 7*vacc_calendar_weeks - 1, 7)
   rows_to_vacc_next <- which(dates_to_run %in% dates_to_vacc_next) ## MONDAYS DON'T ALIGN
     
-  ## changin vaccine coverage
+  ## changing vaccine coverage
   
   ## check number of weeks matches
   if((! (length(existing_cov)/no_age_groups) == (length(curr_start) + next_cal)) & 
@@ -262,17 +266,23 @@ dfn_vaccine_calendar <- function(
 
 ## function to match a given date to the most recent monday 
 ## (will leave any monday as is!)
-last_monday <- function(date){
+last_monday <- function(dates){
   
-  move_back <- 7 - which(weekdays(seq.Date(from = date - 6,
-                                           to = date,
-                                           by = 1)) == 'Monday')
+  output <- c()
   
-  monday <- date - move_back
-                          
-  if(!weekdays(monday) == 'Monday'){warning('Monday move wrong')}
+  for(date in dates){
+    move_back <- 7 - which(weekdays(seq.Date(from = as.Date(date) - 6,
+                                             to = as.Date(date),
+                                             by = 1)) == 'Monday')
+    
+    monday <- as.Date(date) - move_back
+    
+    if(!weekdays(monday) == 'Monday'){warning('Monday move wrong')}
+    
+    output <- c(output, monday)
+  }
   
-  monday
+  as.Date(output)
   
 }
 
