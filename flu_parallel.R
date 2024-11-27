@@ -10,20 +10,25 @@ source(here::here('next_gen_flu','functions','flu_sim.R'))
 #### FUNCTION TO RUN ####
 ## only input is vaccine type, to parallelise over vt ##
 flu_parallel <- function(vaccine_type){
+  
   total_start_time <- Sys.time()
   
   dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
            last_monday(max(epid_dt$end_date)), 
            by=7)
   
+  vacc_name <- names(vacc_type_list)[vaccine_type]
+  vaccine_used_vec <- doses[vacc_scenario == vacc_name & model_age_group==1]$vacc_used
+  
   ## vaccination and ageing
+  #### UP TO HERE ####
   demography_dt <- fcn_weekly_demog(
     iso3c_input,
     ageing,
     ageing_date,
     dates_in = dates_many_flu,
     demographic_start_year = start_year_of_analysis,
-    vaccine_programs[[vaccine_type]],
+    vaccine_used = vaccine_used_vec,
     init_vaccinated = c(0,0,0,0),
     model_age_groups
   )

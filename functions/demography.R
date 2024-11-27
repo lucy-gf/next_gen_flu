@@ -5,6 +5,7 @@ library(readr)
 library(wpp2022)
 data(popF); data(popM)
 
+#### model functions ####
 source(here::here('next_gen_flu','functions','transmission_model.R'))
 source(here::here('next_gen_flu','functions','contact_matr_fcns.R'))
 
@@ -59,24 +60,25 @@ fcn_vri <- function(pop){
 #### VACCINATING AND AGEING ####
 
 ## demographic data calculation ##
-# LT_WPP_data <- data.table(read_csv('data/LT_WPP_data.csv', show_col_types = F))
-# CBR_WPP_data <- data.table(read_csv('data/CBR_WPP_data.csv', show_col_types = F))
-# demog_data <- data.frame(country = unique(CBR_WPP_data$Name),
-#                          CBR = NA, M1 = NA, M2 = NA, M3 = NA, M4 = NA)
-# 
-# # assuming rectangular age distributions within each age group so equal
-# # weighting on each nqx in the group:
-# for(i in 1:nrow(demog_data)){
-#   country_input <- LT_WPP_data[Name == demog_data$country[i]]
-#   demog_data$CBR[i] <- (CBR_WPP_data[Name == demog_data$country[i]])$CBR_indiv
-#   demog_data$M1[i] <- (country_input[country_input$x == 0,]$dying_prob_annual +
-#                          4*country_input[country_input$x == 1,]$dying_prob_annual)/5
-#   demog_data$M2[i] <- mean(country_input[country_input$x %in% 5:19,]$dying_prob_annual)
-#   demog_data$M3[i] <- mean(country_input[country_input$x %in% 20:60,]$dying_prob_annual)
-#   demog_data$M4[i] <- 1/(country_input[x == 65])$LEx
-# }
-# write_csv(demog_data, 'data/demog_data.csv')
-demog_data <- data.table(read_csv(here::here('next_gen_flu','data','demog_data.csv'), show_col_types = F))
+LT_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','LT_WPP_data.csv'), show_col_types = F))
+CBR_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','CBR_WPP_data.csv'), show_col_types = F))
+demog_data <- data.frame(country = unique(CBR_WPP_data$Name),
+                         CBR = NA, M1 = NA, M2 = NA, M3 = NA, M4 = NA)
+
+# assuming rectangular age distributions within each age group so equal
+# weighting on each nqx in the group:
+for(i in 1:nrow(demog_data)){
+  country_input <- LT_WPP_data[Name == demog_data$country[i]]
+  country_input[nrow(country_input), n := 1]
+  country_input <- country_input[rep(1:nrow(country_input), country_input$n),]
+  country_input$x <- 0:100
+  
+  demog_data$CBR[i] <- (CBR_WPP_data[Name == demog_data$country[i]])$CBR_indiv
+  demog_data$M1[i] <- mean(country_input[country_input$x %in% model_age_groups[1]:(model_age_groups[2]-1),]$dying_prob_annual)
+  demog_data$M2[i] <- mean(country_input[country_input$x %in% model_age_groups[2]:(model_age_groups[3]-1),]$dying_prob_annual)
+  demog_data$M3[i] <- mean(country_input[country_input$x %in% model_age_groups[3]:(model_age_groups[4]-1),]$dying_prob_annual)
+  demog_data$M4[i] <- 1/(country_input[x == model_age_groups[4]])$LEx
+}
 
 ## function ##
 fcn_weekly_demog <- function(country,
@@ -84,7 +86,7 @@ fcn_weekly_demog <- function(country,
                              ageing_date = NULL, 
                              dates_in,
                              demographic_start_year,
-                             vaccine_program,
+                             vaccine_used,
                              init_vaccinated,
                              model_age_groups){
   
@@ -172,7 +174,7 @@ fcn_weekly_demog <- function(country,
     vaccination_ratio_input = fcn_vri(pop1),
     begin_date = dates_to_run[1], 
     end_date = dates_to_run[length(dates_to_run)],  
-    age_groups_model = c(0,5,20,65)
+    age_groups_model = model_age_groups
   ) %>% mutate(t = as.Date(t))
   output[output$week %in% dates_to_run,columns] <- input1 %>% select(!c(t))
   action_week <- dates_to_run[length(dates_to_run)]
@@ -207,7 +209,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -238,7 +240,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -275,7 +277,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -306,7 +308,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -345,7 +347,7 @@ fcn_weekly_demog <- function(country,
         vaccination_ratio_input = fcn_vri(pop2),
         begin_date = dates_to_run[1], 
         end_date = dates_to_run[length(dates_to_run)],  
-        age_groups_model = c(0,5,20,65)
+        age_groups_model = model_age_groups
       ) %>% mutate(t = as.Date(t))
       
       output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -376,7 +378,7 @@ fcn_weekly_demog <- function(country,
         vaccination_ratio_input = fcn_vri(pop2),
         begin_date = dates_to_run[1], 
         end_date = dates_to_run[length(dates_to_run)],  
-        age_groups_model = c(0,5,20,65)
+        age_groups_model = model_age_groups
       ) %>% mutate(t = as.Date(t))
       
       output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -416,7 +418,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -447,7 +449,7 @@ fcn_weekly_demog <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -456,10 +458,10 @@ fcn_weekly_demog <- function(country,
   output <- output %>% pivot_longer(!c(country, year, week)) %>% 
     mutate(U = grepl('U', name),
            V = grepl('V', name),
-           age_grp = case_when(grepl('1', name) ~ '0-5',
-                               grepl('2', name) ~ '5-20',
-                               grepl('3', name) ~ '20-65',
-                               grepl('4', name) ~ '65+')) %>% 
+           age_grp = case_when(grepl('1', name) ~ paste0(model_age_groups[1], '-', model_age_groups[2]-1),
+                               grepl('2', name) ~ paste0(model_age_groups[2], '-', model_age_groups[3]-1),
+                               grepl('3', name) ~ paste0(model_age_groups[3], '-', model_age_groups[4]-1),
+                               grepl('4', name) ~ paste0(model_age_groups[4], '+'))) %>% 
     group_by(week, age_grp) %>% mutate(total_as = sum(value)) %>% ungroup()
   
   output$age_grp <- factor(output$age_grp, levels=unique(output$age_grp))
@@ -478,8 +480,10 @@ load(here::here('next_gen_flu','data','contact_all.rdata'))
 
 fcn_contact_matrix <- function(country_name, country_name_altern,
                                country_name_altern_2, pop_model){
+  age_low_vals <- seq(0,75,5)
+  low_vec <- which(age_low_vals %in% (model_age_groups + (-model_age_groups %% 5)))# rounding up to nearest 5-years
   model_age_groups_fcn <- data.frame(agegroup_name=age_group_names, duration=diff(c(model_age_groups,120)),
-                                  wpp_agegroup_low=c(1,2,5,14), wpp_agegroup_high=c(1,4,13,16),
+                                  wpp_agegroup_low=low_vec, wpp_agegroup_high=c(low_vec[2:4]-1, length(age_low_vals)),
                                   popul=pop_model)
   # age groups corresponding to Prem et al. 2021 matrices
   standard_age_groups <- fun_cntr_agestr(i_cntr = c(country_name, country_name_altern, country_name_altern_2),
@@ -492,7 +496,7 @@ fcn_contact_matrix <- function(country_name, country_name_altern,
     sel_cntr_code <- countrycode(country_name, origin = 'country.name', destination = 'iso3c')
   }
   # using 'similar' countries for those not in contact_all from Prem et al.:
-  if(sel_cntr_code %in% setdiff(country_itzs_names$codes, names(contact_all))){
+  if(sel_cntr_code %in% setdiff(itzs$codes, names(contact_all))){
     sel_cntr_code <- case_when(sel_cntr_code == 'AUS' ~ 'NZL',
                                sel_cntr_code == 'SOM' ~ 'ETH',
                                sel_cntr_code == 'LBN' ~ 'SYR',
@@ -636,7 +640,7 @@ fcn_annual_doses <- function(country,
     vaccination_ratio_input = fcn_vri(pop1),
     begin_date = dates_to_run[1], 
     end_date = dates_to_run[length(dates_to_run)],  
-    age_groups_model = c(0,5,20,65)
+    age_groups_model = model_age_groups
   ) %>% mutate(t = as.Date(t))
   output[output$week %in% dates_to_run,columns] <- input1 %>% select(!c(t))
   action_week <- dates_to_run[length(dates_to_run)]
@@ -671,7 +675,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -702,7 +706,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -739,7 +743,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -770,7 +774,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -809,7 +813,7 @@ fcn_annual_doses <- function(country,
           vaccination_ratio_input = fcn_vri(pop2),
           begin_date = dates_to_run[1], 
           end_date = dates_to_run[length(dates_to_run)],  
-          age_groups_model = c(0,5,20,65)
+          age_groups_model = model_age_groups
         ) %>% mutate(t = as.Date(t))
         
         output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -840,7 +844,7 @@ fcn_annual_doses <- function(country,
           vaccination_ratio_input = fcn_vri(pop2),
           begin_date = dates_to_run[1], 
           end_date = dates_to_run[length(dates_to_run)],  
-          age_groups_model = c(0,5,20,65)
+          age_groups_model = model_age_groups
         ) %>% mutate(t = as.Date(t))
         
         output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -880,7 +884,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
@@ -911,7 +915,7 @@ fcn_annual_doses <- function(country,
       vaccination_ratio_input = fcn_vri(pop2),
       begin_date = dates_to_run[1], 
       end_date = dates_to_run[length(dates_to_run)],  
-      age_groups_model = c(0,5,20,65)
+      age_groups_model = model_age_groups
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
