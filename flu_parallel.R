@@ -21,14 +21,14 @@ flu_parallel <- function(vaccine_type){
   vaccine_used_vec <- doses[vacc_scenario == vacc_name & model_age_group==1]$vacc_used
   
   ## vaccination and ageing
-  #### UP TO HERE ####
   demography_dt <- fcn_weekly_demog(
-    iso3c_input,
+    country = iso3c_input,
     ageing,
     ageing_date,
     dates_in = dates_many_flu,
     demographic_start_year = start_year_of_analysis,
     vaccine_used = vaccine_used_vec,
+    doses_dt = doses,
     init_vaccinated = c(0,0,0,0),
     model_age_groups
   )
@@ -42,7 +42,8 @@ flu_parallel <- function(vaccine_type){
                           ageing = T, 
                           ageing_date,
                           epid_inputs = epid_dt[simulation_index==sim_index],  
-                          vaccine_program = vaccine_programs[[vaccine_type]],
+                          vaccine_used = vaccine_used_vec,
+                          doses_dt = doses,
                           model_age_groups,
                           demography_dt
     )

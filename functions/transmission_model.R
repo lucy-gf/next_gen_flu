@@ -138,7 +138,9 @@ flu_odin <- odin::odin({
   vI[] <- interpolate(dates, calendar, "constant")
   
   sumN[] <- if (vI[i]>0) (S[i]+E1[i]+E2[i]+I1[i]+I2[i]+R[i]) else 0
-  v[] <- if (sumN[i]>0) (1 - ((1 - vI[i])/(sumN[i]/pop[i]))) else 0
+  # v[] <- if (sumN[i]>0) (1 - ((1 - vI[i])/(sumN[i]/pop[i]))) else 0
+  # updated version, for doses instead of coverage
+  v[] <- if (sumN[i]>0) vI[i]/(7*sumN[i]/pop[i]) else 0
   
   # Transmission matrix
   sij[,] <- cij[i,j] * (I1[j] + I2[j] + vacc_rel_inf*(I1v[j] + I2v[j]))
@@ -191,7 +193,7 @@ flu_odin <- odin::odin({
   initial(Rv[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
   initial(Rnv[1:no_groups]) <- 0
   initial(Rev[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
-  initial(VT[1:no_groups]) <- (pop[i]*V0[i])
+  initial(VT[1:no_groups]) <- 0 #(pop[i]*V0[i])
   
   # Set dimension of all variables/parameters
   dim(dates) <- user()
@@ -248,7 +250,7 @@ fcn_vaccinated_demography <- function(
     age_groups_model,
     vacc_rel_inf = 1
 ){
-  
+
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
   population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
   
@@ -327,6 +329,10 @@ fcn_vaccinated_demography_doses <- function(
     age_groups_model,
     vacc_rel_inf = 1
 ){
+  
+  if(sum(rowSums(calendar_input$calendar) > 0) > 1){
+    calendar_input$calendar[1:sum(rowSums(calendar_input$calendar) > 0),] <- calendar_input$calendar[rep(seq_len(1), each = sum(rowSums(calendar_input$calendar) > 0)), ]
+  }
   
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
   population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
