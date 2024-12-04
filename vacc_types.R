@@ -19,7 +19,7 @@ vacc_type_list <- list(
   ),
   B.1 = list(
     imm_duration = 2,
-    VE = c(0.9, 0.7, 0.7, 0.4),
+    VE = c(0.9, 0.7, 0.7, 0.46),
     rel_inf = 1
   ),
   B.2 = list(

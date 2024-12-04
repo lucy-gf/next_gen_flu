@@ -56,10 +56,16 @@ flu_parallel <- function(vaccine_type){
       mf_output <- rbind(mf_output, mf_output_si)
     }
     
-    write.table(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
+    if(!file.exists(here::here('output','data','epi',paste0(itz_input)))){
+      dir.create(file.path(here::here('output','data')))
+      dir.create(file.path(here::here('output','data','epi')))
+      dir.create(file.path(here::here('output','data','epi',paste0(itz_input))))
+    }
+    
+    writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
                  ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
                 ', total time on country = ', round(Sys.time() - total_start_time,2)),
-                file = here::here('output','data','epi',paste0(itz_input),paste0(vaccine_type, '_text.txt')))
+                paste0('output/data/epi/',paste0(itz_input),'/',paste0(vaccine_type, '_text.txt')))
   }
   
   mf_output

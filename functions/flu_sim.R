@@ -16,6 +16,7 @@ one_flu <- function(
     end_date, # end of period
     intended_r0 = NULL,
     vaccine_program,
+    vaccine_used,
     doses_dt
     ){
   
@@ -209,11 +210,12 @@ many_flu <- function(
       end_date = epid_data$end_date,
       intended_r0 = epid_data$r0_to_scale,
       vaccine_program = vaccine_used_row,
+      vaccine_used = vaccine_used,
       doses_dt = doses_dt
     )
-    # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
     
-    print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
+    # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
+    # print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
     
     if(epidemic_i == 1){
       output_dt <- flu_epid_output
