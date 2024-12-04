@@ -47,7 +47,8 @@ flu_parallel <- function(vaccine_type){
                           model_age_groups,
                           demography_dt
     )
-    mf_output_si[, vacc_type := names(vaccine_programs)[vaccine_type]]
+    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis]
+    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]]
     mf_output_si[, simulation_index := sim_index]
     if(nrow(mf_output)==0){
       mf_output <- mf_output_si

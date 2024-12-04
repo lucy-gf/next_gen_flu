@@ -7,7 +7,6 @@ country_itzs_names <- data.table(read_csv('next_gen_flu/data/country_itzs_names.
 one_flu <- function(
     country_code,
     demography_dt,
-    init_vacc, # 4-vector of proportions
     susceptibility, # in [0,1]
     transmissibility, 
     matching,
@@ -16,7 +15,7 @@ one_flu <- function(
     epid_start_date,
     end_date, # end of period
     intended_r0 = NULL,
-    vaccine_programs,
+    vaccine_program,
     doses_dt
     ){
   
@@ -101,8 +100,7 @@ one_flu <- function(
   current_r0 <- fluEvidenceSynthesis::as_R0(
     transmission_rate = transmissibility,
     contact_matrix = contact_matrix_small,
-    age_groups = tot_pop*c((0.2*1 + 0.8*susceptibility),
-                              rep(susceptibility,3))
+    age_groups = tot_pop
   )
   # print(paste0('R0 = ', current_r0))
   if(is.na(intended_r0)){ intended_r0 <- NULL }
@@ -118,21 +116,43 @@ one_flu <- function(
     calendar_input,
     contacts = contact_matrix_small,
     waning_rate,
-    init_vaccinated = init_vacc,
+    init_vaccinated = 1 - prop_unv,
     begin_date = epid_start_date, 
-    end_date, 
-    age_groups_model,
+    end_date = min(end_date, epid_start_date + 548), # allowed to run for 1.5 years 
+    model_age_groups,
     vacc_rel_inf
   )
   
   ## merging into total time period ##
-  if(!epid_start_date==period_start_date){
+  if(!epid_start_date==period_start_date & !max(dt$time)==end_date){
+    time_before <- seq.Date(period_start_date, (epid_start_date-1), by=7)
+    time_after <- seq.Date(max(dt$time)+7, end_date, by=7)
+    output <- rbind(data.table(time = time_before, 
+                               I1 = 0, I2 = 0, I3 = 0, I4 = 0,
+                               IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
+                               IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0), 
+                    dt,
+                    data.table(time = time_after, 
+                               I1 = 0, I2 = 0, I3 = 0, I4 = 0,
+                               IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
+                               IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0))
+  }
+  if(!epid_start_date==period_start_date & max(dt$time)==end_date){
     time_before <- seq.Date(period_start_date, (epid_start_date-1), by=7)
     output <- rbind(data.table(time = time_before, 
                                I1 = 0, I2 = 0, I3 = 0, I4 = 0,
                                IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
                                IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0), dt)
-  }else{
+  }
+  if(epid_start_date==period_start_date & !max(dt$time)==end_date){
+    time_after <- seq.Date(max(dt$time)+7, end_date, by=7)
+    output <- rbind(dt,
+                    data.table(time = time_after, 
+                               I1 = 0, I2 = 0, I3 = 0, I4 = 0,
+                               IU1 = 0, IU2 = 0, IU3 = 0, IU4 = 0,
+                               IV1 = 0, IV2 = 0, IV3 = 0, IV4 = 0))
+  }
+  if(!epid_start_date==period_start_date & max(dt$time)==end_date){
     output <- dt
   }
 
@@ -162,7 +182,7 @@ many_flu <- function(
   }
   imm_dur_vec <- as.numeric(imm_dur_vec)
   waning_vec <- 1/(365*imm_dur_vec)
-  waning_dt <- data.table(year = demographic_start_year:(max(doses$year)),
+  waning_dt <- data.table(year = start_year_of_analysis:(max(doses$year)),
                           waning = waning_vec,
                           vacc = vaccine_used)
   
@@ -180,18 +200,20 @@ many_flu <- function(
     flu_epid_output <- one_flu(
       country_code = country, # iso3c string
       demography_dt = demography_dt,
-      init_vacc = demog_flu_vacc_prop, 
       susceptibility = epid_data$susceptibility, # in [0,1]
       transmissibility = epid_data$transmissibility, 
       matching = epid_data$match,
       initial_infected = rep(epid_data$initial_infected, 4), # 4-vector
       period_start_date = epid_data$period_start_date,
       epid_start_date = epid_data$epid_start_date,
-      end_date = epid_data$end_date, # end of period
+      end_date = epid_data$end_date,
       intended_r0 = epid_data$r0_to_scale,
       vaccine_program = vaccine_used_row,
       doses_dt = doses_dt
     )
+    # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
+    
+    print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
     
     if(epidemic_i == 1){
       output_dt <- flu_epid_output
@@ -279,22 +301,22 @@ dfn_vaccine_calendar_doses <- function(
   dates_to_vacc_next <- seq.Date(next_start, next_start + 7*vacc_calendar_weeks - 1, 7)
   rows_to_vacc_next <- which(dates_to_run %in% dates_to_vacc_next) 
   
-  ## check number of weeks matches
-  if((! (length(existing_cov)/no_age_groups) == (length(curr_start) + next_cal)) & 
-     ((length(curr_start) + next_cal) > 0)){
-    warning("Number of vaccination calendars isn't matching!")
-  }
-  existing_cov_curr <- unlist(ifelse((length(curr_start) > 0), 
-                                     list(existing_cov[1:4]), list(rep(0,4))))
-  if(next_cal == T){
-    existing_cov_next <- unlist(ifelse((length(curr_start) > 0), 
-                                       list(existing_cov[5:8]), list(existing_cov[1:4])))
-  }
+  # ## check number of weeks matches
+  # if((! (length(existing_cov)/no_age_groups) == (length(curr_start) + next_cal)) & 
+  #    ((length(curr_start) + next_cal) > 0)){
+  #   warning("Number of vaccination calendars isn't matching!")
+  # }
+  # existing_cov_curr <- unlist(ifelse((length(curr_start) > 0), 
+  #                                    list(existing_cov[1:4]), list(rep(0,4))))
+  # if(next_cal == T){
+  #   existing_cov_next <- unlist(ifelse((length(curr_start) > 0), 
+  #                                      list(existing_cov[5:8]), list(existing_cov[1:4])))
+  # }
   
   vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- t(matrix(vacc_cov/length(rows_to_vacc_curr), ncol = length(rows_to_vacc_curr), nrow = no_age_groups))
                                                                    
   if(next_cal == T){
-    vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- t(matrix(vacc_cov/length(rows_to_vacc_next), ncol = length(rows_to_vacc_next), nrow = no_age_groups))
+    vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- t(matrix(vacc_cov_next/length(rows_to_vacc_next), ncol = length(rows_to_vacc_next), nrow = no_age_groups))
   }
   
   vc
