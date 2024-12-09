@@ -39,7 +39,7 @@ flu_parallel <- function(vaccine_type){
     start_time <- Sys.time()
     
     mf_output_si <- many_flu(country = iso3c_input,
-                          ageing = T, 
+                          ageing, 
                           ageing_date,
                           epid_inputs = epid_dt[simulation_index==sim_index],  
                           vaccine_used = vaccine_used_vec,
@@ -59,13 +59,16 @@ flu_parallel <- function(vaccine_type){
     if(!file.exists(here::here('output','data','epi',paste0(itz_input)))){
       dir.create(file.path(here::here('output','data')))
       dir.create(file.path(here::here('output','data','epi')))
-      dir.create(file.path(here::here('output','data','epi',paste0(itz_input))))
+      dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
     }
     
-    writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
-                 ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
-                ', total time on country = ', round(Sys.time() - total_start_time,2)),
-                paste0('output/data/epi/',paste0(itz_input),'/',paste0(vaccine_type, '_text.txt')))
+    if(sim_index == 1 | sim_index %% 10 == 0){
+      writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
+                        ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
+                        ', total time on country = ', round(Sys.time() - total_start_time,2)),
+                 paste0('output/data/epi/',paste0(itz_input,'_text'),'/',paste0(vaccine_type, '_text.txt')))  
+    }
+    
   }
   
   mf_output

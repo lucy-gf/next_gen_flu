@@ -40,8 +40,15 @@ incidence_VS <- function(
     }
   }
   
-  if(sum(initial_infected_vector > population_stratified[1:4]*(1 - init_vaccinated*calendar_input$efficacy[1:4])) > 0){
-    stop('More initial infecteds than susceptibles')
+  poss_init_inf <- unname(population_stratified[1:4]*(1 - init_vaccinated*calendar_input$efficacy[1:4]))
+  
+  if(sum(initial_infected_vector > poss_init_inf) > 0){
+    if(printed==F){
+      print('More initial infecteds than susceptibles')
+      printed <<- T
+      } # if this is the case just assume very high initial infected (max out population)
+    # will only be the case in a few epidemics in countries *much* smaller than their exemplar, e.g. BTN < CHN
+    initial_infected_vector <- pmin(poss_init_inf, initial_infected_vector)
   }
   
   # specify the model

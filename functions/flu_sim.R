@@ -90,8 +90,8 @@ one_flu <- function(
   
   contact_matrix <- fcn_contact_matrix(
     country_name, 
-    country_name_altern = country_itzs_names[country %like% country_name]$country_altern,
-    country_name_altern_2 = country_itzs_names[country %like% country_name]$country_altern_2,
+    country_name_altern = country_itzs_names[codes %like% country_code]$country_altern,
+    country_name_altern_2 = country_itzs_names[codes %like% country_code]$country_altern_2,
     pop_model = tot_pop
   )
   ## transform to per capita contacts
