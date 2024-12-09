@@ -50,15 +50,19 @@ flu_parallel <- function(vaccine_type){
     mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis]
     mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]]
     mf_output_si[, simulation_index := sim_index]
+    
+    # print(sim_index)
+    if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
+      print('is.na')
+    }
+    
     if(nrow(mf_output)==0){
       mf_output <- mf_output_si
     }else{
       mf_output <- rbind(mf_output, mf_output_si)
     }
     
-    if(!file.exists(here::here('output','data','epi',paste0(itz_input)))){
-      dir.create(file.path(here::here('output','data')))
-      dir.create(file.path(here::here('output','data','epi')))
+    if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
       dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
     }
     

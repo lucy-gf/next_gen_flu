@@ -44,15 +44,16 @@ one_flu <- function(
     demography_dt[week %in% c(week1,week2) & V==T,]$value/demography_dt[week %in% c(week1,week2) & V==T,]$total_as
   )
   
-  key_vacc_date <- case_when(month(epid_start_date) <= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date) - 1,
-                             month(epid_start_date) > as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date),
-                             month(epid_start_date) <= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date),
-                             month(epid_start_date) > as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date) + 1)
+  key_vacc_date <- case_when(month(epid_start_date) < as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date) - 1,
+                             month(epid_start_date) >= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date),
+                             month(epid_start_date) < as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date),
+                             month(epid_start_date) >= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date) + 1)
   if(key_vacc_date < min(doses_dt$year)){key_vacc_date <- min(doses_dt$year)}
   if(key_vacc_date > max(doses_dt$year)){key_vacc_date <- max(doses_dt$year)}
   
-  demog_flu <- demography_dt[week == last_monday(epid_start_date)]
-  demog_flu_next_yr <- demography_dt[week %in% last_monday(epid_start_date + 365)]
+  key_vacc_date_full <- as.Date(paste0(vacc_calendar_start,'-',key_vacc_date), format='%d-%m-%Y')
+  demog_flu <- demography_dt[week == last_monday(key_vacc_date_full)]
+  demog_flu_next_yr <- demography_dt[week %in% last_monday(key_vacc_date_full + 365)]
   
   # prop unvaccinated
   prop_unv <- demog_flu[U==T]$value/demog_flu[U==T]$total_as
@@ -66,18 +67,20 @@ one_flu <- function(
     calendar_input <- dfn_vaccine_calendar_doses(
       vacc_cov = prop_unv*unname(unlist(doses_dt[year==key_vacc_date & vacc_scenario==vaccine_used[length(vaccine_used)]]$doses))/tot_pop,
       dates_to_run = seq.Date(epid_start_date, end_date, 7),
+      key_vacc_date_full,
       efficacy = efficacy_input,
       no_age_groups = length(tot_pop),
       no_risk_groups = 1,
       vacc_calendar_start = vacc_calendar_start,
       vacc_calendar_weeks = vacc_calendar_weeks,
       next_cal = T,
-      vacc_cov_next = prop_unv_n*unname(unlist(doses_dt[year==key_vacc_date & vacc_scenario==vaccine_used[length(vaccine_used)]]$doses))/tot_pop_n
+      vacc_cov_next = prop_unv_n*unname(unlist(doses_dt[year==key_vacc_date+1 & vacc_scenario==vaccine_used[length(vaccine_used)]]$doses))/tot_pop_n
     )
   }else{
     calendar_input <- dfn_vaccine_calendar_doses(
       vacc_cov = prop_unv*unname(unlist(doses_dt[year==key_vacc_date & vacc_scenario==vaccine_used[length(vaccine_used)]]$doses))/tot_pop,
       dates_to_run = seq.Date(epid_start_date, end_date, 7),
+      key_vacc_date_full,
       efficacy = efficacy_input,
       no_age_groups = length(tot_pop),
       no_risk_groups = 1,
@@ -215,6 +218,7 @@ many_flu <- function(
     )
     
     # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
+    # print(epidemic_i)
     # print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
     
     if(epidemic_i == 1){
@@ -252,6 +256,7 @@ change_coverage <- function(data, final_uptake, existing_uptake) {
 dfn_vaccine_calendar_doses <- function(
     vacc_cov, # intended doses, e.g. c(5e6, 8e7, 0, 0)
     dates_to_run, # seq.Date between start of epidemic and end of period
+    key_vacc_date_full,
     efficacy, # e.g. c(0.42, 0.42, 0.42, 0.28)
     no_age_groups, # 4
     no_risk_groups, # 1
@@ -281,10 +286,14 @@ dfn_vaccine_calendar_doses <- function(
   ## and then the *next* vaccination program
   
   ## *current* vaccine calendar (if applicable):
-  possible_start_dates <- as.Date(unlist(lapply(as.Date(paste0(vacc_calendar_start, '-', (year(dates_to_run[1]) - 1):(year(dates_to_run[length(dates_to_run)]) + 1)), format = '%d-%m-%Y'),
-                                                last_monday)))
-  curr_start <- possible_start_dates[dates_to_run[1] - possible_start_dates < 7*vacc_calendar_weeks &
-                                       dates_to_run[1] - possible_start_dates >= 0]
+  # possible_start_dates <- as.Date(unlist(lapply(as.Date(paste0(vacc_calendar_start, '-', (year(dates_to_run[1]) - 1):(year(dates_to_run[length(dates_to_run)]) + 1)), format = '%d-%m-%Y'),
+  #                                               last_monday)))
+  # curr_start <- possible_start_dates[dates_to_run[1] - possible_start_dates < 7*vacc_calendar_weeks &
+  #                                      dates_to_run[1] - possible_start_dates >= 0 |
+  #                                      possible_start_dates - dates_to_run[1] < 365 - 7*vacc_calendar_weeks &
+  #                                      possible_start_dates - dates_to_run[1] > 0 ]
+  curr_start <- last_monday(key_vacc_date_full)
+  
   if(length(curr_start) > 0){
     dates_to_vacc_curr <- seq.Date(curr_start, curr_start + 7*vacc_calendar_weeks - 1, 7)
     rows_to_vacc_curr <- which(dates_to_run %in% dates_to_vacc_curr) 
@@ -297,8 +306,7 @@ dfn_vaccine_calendar_doses <- function(
   }
   
   ## *next* vaccine calendar:
-  next_start <- possible_start_dates[possible_start_dates - dates_to_run[1] <= (365+6) &
-                                       possible_start_dates - dates_to_run[1] > 0]
+  next_start <- last_monday(key_vacc_date_full + 365)
   if(length(next_start)>1){next_start <- next_start[1]}
   dates_to_vacc_next <- seq.Date(next_start, next_start + 7*vacc_calendar_weeks - 1, 7)
   rows_to_vacc_next <- which(dates_to_run %in% dates_to_vacc_next) 
@@ -315,10 +323,12 @@ dfn_vaccine_calendar_doses <- function(
   #                                      list(existing_cov[5:8]), list(existing_cov[1:4])))
   # }
   
-  vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- t(matrix(vacc_cov/length(rows_to_vacc_curr), ncol = length(rows_to_vacc_curr), nrow = no_age_groups))
+  vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- t(matrix(vacc_cov/vacc_calendar_weeks, 
+                                                              ncol = length(rows_to_vacc_curr), nrow = no_age_groups))
                                                                    
   if(next_cal == T){
-    vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- t(matrix(vacc_cov_next/length(rows_to_vacc_next), ncol = length(rows_to_vacc_next), nrow = no_age_groups))
+    vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- t(matrix(vacc_cov_next/vacc_calendar_weeks, 
+                                                                ncol = length(rows_to_vacc_next), nrow = no_age_groups))
   }
   
   vc
