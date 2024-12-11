@@ -217,6 +217,8 @@ many_flu <- function(
       doses_dt = doses_dt
     )
     
+    # if(is.na(sum(rowSums(flu_epid_output %>% select(starts_with('I')))))){print(epidemic_i)}
+    
     # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
     # print(epidemic_i)
     # print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
@@ -323,8 +325,9 @@ dfn_vaccine_calendar_doses <- function(
   #                                      list(existing_cov[5:8]), list(existing_cov[1:4])))
   # }
   
-  vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- t(matrix(vacc_cov/vacc_calendar_weeks, 
-                                                              ncol = length(rows_to_vacc_curr), nrow = no_age_groups))
+  vc$calendar[rows_to_vacc_curr, 1:no_age_groups] <- suppressWarnings(t(matrix(vacc_cov/vacc_calendar_weeks, 
+                                                              ncol = length(rows_to_vacc_curr), nrow = no_age_groups)))
+  # errors arise if the epidemic starts after that year's vaccine program - all good!
                                                                    
   if(next_cal == T){
     vc$calendar[rows_to_vacc_next, 1:no_age_groups] <- t(matrix(vacc_cov_next/vacc_calendar_weeks, 

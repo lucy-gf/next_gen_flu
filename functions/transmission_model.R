@@ -147,7 +147,9 @@ flu_odin <- odin::odin({
   sumN[] <- if (vI[i]>0) (S[i]+E1[i]+E2[i]+I1[i]+I2[i]+R[i]) else 0
   # v[] <- if (sumN[i]>0) (1 - ((1 - vI[i])/(sumN[i]/pop[i]))) else 0
   # updated version, for doses instead of coverage
-  v[] <- if (sumN[i]>0) vI[i]/(7*sumN[i]/pop[i]) else 0
+  v[] <- if (sumN[i]/pop[i] > vI[i]) vI[i]/(7*sumN[i]/pop[i]) else 0
+  # do not vaccinate if the intended weekly coverage is higher than the
+  # proportion of the age group who are susceptible
   
   # Transmission matrix
   sij[,] <- cij[i,j] * (I1[j] + I2[j] + vacc_rel_inf*(I1v[j] + I2v[j]))

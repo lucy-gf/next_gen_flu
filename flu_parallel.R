@@ -32,6 +32,10 @@ flu_parallel <- function(vaccine_type){
     init_vaccinated = c(0,0,0,0),
     model_age_groups
   )
+  if(min(demography_dt$value) < 0){
+    print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,
+                 ', vaccine type = ', vaccine_type))
+  }
   
   mf_output <- data.table()
   
@@ -53,7 +57,7 @@ flu_parallel <- function(vaccine_type){
     
     # print(sim_index)
     if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
-      print('is.na')
+      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
     }
     
     if(nrow(mf_output)==0){
