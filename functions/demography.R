@@ -510,6 +510,7 @@ fcn_contact_matrix <- function(country_name, country_name_altern,
   standard_age_groups <- fun_cntr_agestr(i_cntr = c(country_name, country_name_altern, country_name_altern_2),
                                          i_year="2020",
                                          age_low_vals = seq(0,75,5), age_high_vals = c(seq(4,74,5),120))
+  
   # modify contact matrix to correspond to our age groups
   if(country_name=='Kosovo'){
     sel_cntr_code <- 'XKX'

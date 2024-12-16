@@ -87,10 +87,12 @@ fun_cntr_agestr <- function(i_cntr,i_year,age_low_vals,age_high_vals){
     cntr_agestr=data.frame(agegroups=popF[popF$name %in% i_cntr,"age"],
                            values=popF[popF$name %in% i_cntr,i_year] + popM[popM$name %in% i_cntr,i_year])
   }
+  
   agegr_truthvals=sapply(strsplit(as.character(cntr_agestr$agegroups),"-"),"[[",1) %in% age_groups$age_low
   N_tot=cntr_agestr$values[agegr_truthvals]
   N_tot[length(N_tot)]=N_tot[length(N_tot)]+sum(cntr_agestr$values[!agegr_truthvals])
-  N_tot=N_tot*1e3; # N_tot
+  N_tot=N_tot*1e3
+
   data.frame(age_low=age_low_vals, age_high=age_high_vals,values=N_tot, 
              duration=(age_high_vals-age_low_vals)+1) %>% mutate(proportion=values/sum(values))
 }
