@@ -1,6 +1,6 @@
 #### VACCINE TYPES ####
 
-# vaccine types:
+# vaccine types, from latest MMGH choices:
 vacc_type_list <- list(
   `0` = list(
     imm_duration = 0.5, # immunity duration
@@ -34,7 +34,7 @@ vacc_type_list <- list(
   )
 )
 
-## function to map targeted ages to proportions of each model age group
+## function to map targeted ages to proportions of each model age group, not in use now
 coverage_vector <- function(
     target, # vector of targeted ages
     cov, # scalar
@@ -56,7 +56,7 @@ coverage_vector <- function(
   coverage_vec
 }
 
-## function to map age targeting, coverage input, vaccination program details to a list
+## function to map age targeting, coverage input, vaccination program details to a list - not in use now
 fcn_vacc_prog <- function(target_ages, cov_input, 
                           vacc_calendar_start,
                           vacc_calendar_weeks, 

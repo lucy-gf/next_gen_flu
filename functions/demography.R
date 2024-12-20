@@ -13,6 +13,7 @@ source(here::here('next_gen_flu','functions','contact_matr_fcns.R'))
 pop_hist_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_hist_WPP_data.csv'), show_col_types = F))
 pop_proj_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_proj_WPP_data.csv'), show_col_types = F))
 
+# in 5-year age bands:
 fcn_pop_all <- function(country, year_demog = 2025){
   if(year_demog < 2022){
     data_in <- pop_hist_WPP_data[name %in% country & Year == year_demog]
@@ -23,6 +24,7 @@ fcn_pop_all <- function(country, year_demog = 2025){
   unlist(lapply(pop_in/5, function(x) rep(x,5)))
 }
 
+# across model age groups:
 fcn_pop_model <- function(country, year_demog = 2025){
   if(year_demog < 2022){
     data_in <- pop_hist_WPP_data[name %in% country & Year == year_demog]
@@ -43,6 +45,7 @@ fcn_pop_5_to_75 <- function(country, year_demog = 2025){
   c(pop_in[1:15], sum(pop_in[16:21]))
 }
 
+# total across unvaccinated and vaccinated
 fcn_yr_res_pop <- function(pop){
   # c(rep((pop$U1+pop$V1)/5, 5), rep((pop$U2+pop$V2)/15, 15),
   #   rep((pop$U3+pop$V3)/45, 45), rep((pop$U4+pop$V4)/5, 5))
@@ -50,6 +53,7 @@ fcn_yr_res_pop <- function(pop){
     (pop$U3+pop$V3), (pop$U4+pop$V4))
 }
 
+# proportion vaccinated
 fcn_vri <- function(pop){
   c(unlist(c(unname(pop['V1']/(pop['U1'] + pop['V1'])), 
              unname(pop['V2']/(pop['U2'] + pop['V2'])),
@@ -80,7 +84,11 @@ for(i in 1:nrow(demog_data)){
   demog_data$M4[i] <- 1/(country_input[x == model_age_groups[4]])$LEx
 }
 
-## function ##
+## demographic ageing/vaccination function ##
+## essentially in turn *ages* and *vaccinated* based on input dates, 
+## runs the ODE model with 0 transmission to track immunity waning between each pair of dates.
+## ageing occurs as matrix multiplication, and can be turned off by changing the ageing
+## matrix to the identity matrix
 fcn_weekly_demog <- function(country,
                              ageing,
                              ageing_date = NULL, 
@@ -499,6 +507,7 @@ fcn_weekly_demog <- function(country,
 #### CONTACT MATRICES ####
 load(here::here('next_gen_flu','data','contact_all.rdata'))
 
+# make contact matrix from 4-vector of population sizes
 fcn_contact_matrix <- function(country_name, country_name_altern,
                                country_name_altern_2, pop_model){
   age_low_vals <- seq(0,75,5)
@@ -570,6 +579,7 @@ fcn_contact_matrix <- function(country_name, country_name_altern,
 #### ANNUAL VACCINE DOSES ####
 
 ## function ##
+## basically the same as fcn_weekly_demog but only tracks doses given
 fcn_annual_doses <- function(country,
                              ageing,
                              ageing_date = NULL, 

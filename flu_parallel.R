@@ -32,16 +32,18 @@ flu_parallel <- function(vaccine_type){
     init_vaccinated = c(0,0,0,0),
     model_age_groups
   )
-  if(min(demography_dt$value) < 0){
+  if(min(demography_dt$value) < 0){ # quick fix if any vaccination issues (there shouldn't be)
     print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,
                  ', vaccine type = ', vaccine_type))
   }
   
   mf_output <- data.table()
   
+  # loop over 1:100 simulations
   for(sim_index in unique(epid_dt$simulation_index)){
     start_time <- Sys.time()
     
+    # run flu simulations
     mf_output_si <- many_flu(country = iso3c_input,
                           ageing, 
                           ageing_date,
@@ -51,15 +53,16 @@ flu_parallel <- function(vaccine_type){
                           model_age_groups,
                           demography_dt
     )
-    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis]
-    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]]
-    mf_output_si[, simulation_index := sim_index]
+    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
+    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
+    mf_output_si[, simulation_index := sim_index] # add simulation number
     
-    # print(sim_index)
+    # printing if there is an NA error (shouldn't happen)
     if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
       print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
     }
     
+    # merge output 
     if(nrow(mf_output)==0){
       mf_output <- mf_output_si
     }else{
@@ -70,6 +73,7 @@ flu_parallel <- function(vaccine_type){
       dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
     }
     
+    # print txt file to keep track of simulations
     if(sim_index == 1 | sim_index %% 10 == 0){
       writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
                         ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),

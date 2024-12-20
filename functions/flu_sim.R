@@ -28,12 +28,13 @@ one_flu <- function(
   epid_start_date <- last_monday(epid_start_date)
   end_date <- last_monday(end_date)
   
+  ## vaccine details, from vacc_type_list
   vacc_details <- vacc_type_list[[vaccine_program$vacc]]
   efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - matching)], 3), vacc_details$VE[2 + 2*(1 - matching)])
   vacc_rel_inf <- vacc_details$rel_inf
-  
   waning_rate <- vaccine_program$waning
   
+  ## making vaccine calendar for epidemic simulation
   poss_dates <- as.Date(unlist(lapply(as.Date(paste0(vacc_calendar_start, '-', (year(epid_start_date) - 1):(year(end_date) + 1)), format = '%d-%m-%Y'),
                                                 last_monday)))
  
@@ -45,6 +46,7 @@ one_flu <- function(
     demography_dt[week %in% c(week1,week2) & V==T,]$value/demography_dt[week %in% c(week1,week2) & V==T,]$total_as
   )
   
+  ## which year to vaccinate population?
   key_vacc_date <- case_when(month(epid_start_date) < as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date) - 1,
                              month(epid_start_date) >= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date),
                              month(epid_start_date) < as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'SH' ~ year(epid_start_date),
@@ -92,6 +94,7 @@ one_flu <- function(
     )
   }
   
+  ## making contact matrix wrt aged population
   contact_matrix <- fcn_contact_matrix(
     country_name, 
     country_name_altern = country_itzs_names[codes %like% country_code]$country_altern,
@@ -113,6 +116,7 @@ one_flu <- function(
     contact_matrix_small <- contact_matrix_small*(intended_r0/current_r0)
   }
   
+  ## run transmission model
   dt <- incidence_VS(
     demography_input = tot_pop,
     susceptibility,
@@ -181,6 +185,7 @@ many_flu <- function(
                     last_monday(max(epid_inputs$end_date)), 
                     by=7)
   
+  ## which vaccine is used in each year/epidemic? 
   imm_dur_vec <- vaccine_used
   for(i in 1:length(imm_dur_vec)){
     imm_dur_vec[i] <- vacc_type_list[[imm_dur_vec[i]]]$imm_duration
@@ -191,6 +196,7 @@ many_flu <- function(
                           waning = waning_vec,
                           vacc = vaccine_used)
   
+  ## loop over number of epidemics in simulation
   output_dt <- data.table()
   for(epidemic_i in 1:nrow(epid_inputs)){ 
     
@@ -219,11 +225,11 @@ many_flu <- function(
     )
     
     # if(is.na(sum(rowSums(flu_epid_output %>% select(starts_with('I')))))){print(epidemic_i)}
-    
     # plot(flu_epid_output$time, rowSums(flu_epid_output[,c('I1','I2','I3','I4')]),type='l',ylim=c(0,10e6))
     # print(epidemic_i)
     # print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
     
+    ## merge outputs
     if(epidemic_i == 1){
       output_dt <- flu_epid_output
     }else{
@@ -338,7 +344,7 @@ dfn_vaccine_calendar_doses <- function(
   vc
 }
 
-## function to define vaccine calendar for a given vaccine program - OLD
+## function to define vaccine calendar for a given vaccine program - OLD, no longer in use
 
 dfn_vaccine_calendar_cov <- function(
     vacc_cov, # intended coverage, e.g. c(0.5 0.43, 0, 0)

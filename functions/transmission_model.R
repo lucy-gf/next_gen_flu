@@ -3,6 +3,7 @@ library(odin)
 
 infection_delays <- c(0.8, 1.8) 
 
+## set up ODE model inputs
 incidence_VS <- function(
     demography_input,
     susceptibility,
