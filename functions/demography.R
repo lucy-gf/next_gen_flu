@@ -6,12 +6,12 @@ library(wpp2022)
 data(popF); data(popM)
 
 #### model functions ####
-source(here::here('next_gen_flu','functions','transmission_model.R'))
-source(here::here('next_gen_flu','functions','contact_matr_fcns.R'))
+source(here::here('functions','transmission_model.R'))
+source(here::here('functions','contact_matr_fcns.R'))
 
 #### POPULATION SIZE FUNCTIONS  ####
-pop_hist_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_hist_WPP_data.csv'), show_col_types = F))
-pop_proj_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','pop_proj_WPP_data.csv'), show_col_types = F))
+pop_hist_WPP_data <- data.table(read_csv(here::here('data','pop_hist_WPP_data.csv'), show_col_types = F))
+pop_proj_WPP_data <- data.table(read_csv(here::here('data','pop_proj_WPP_data.csv'), show_col_types = F))
 
 # in 5-year age bands:
 fcn_pop_all <- function(country, year_demog = 2025){
@@ -64,8 +64,8 @@ fcn_vri <- function(pop){
 #### VACCINATING AND AGEING ####
 
 ## demographic data calculation ##
-LT_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','LT_WPP_data.csv'), show_col_types = F))
-CBR_WPP_data <- data.table(read_csv(here::here('next_gen_flu','data','CBR_WPP_data.csv'), show_col_types = F))
+LT_WPP_data <- data.table(read_csv(here::here('data','LT_WPP_data.csv'), show_col_types = F))
+CBR_WPP_data <- data.table(read_csv(here::here('data','CBR_WPP_data.csv'), show_col_types = F))
 demog_data <- data.frame(country = unique(CBR_WPP_data$Name),
                          CBR = NA, M1 = NA, M2 = NA, M3 = NA, M4 = NA)
 
@@ -505,7 +505,7 @@ fcn_weekly_demog <- function(country,
 
 
 #### CONTACT MATRICES ####
-load(here::here('next_gen_flu','data','contact_all.rdata'))
+load(here::here('data','contact_all.rdata'))
 
 # make contact matrix from 4-vector of population sizes
 fcn_contact_matrix <- function(country_name, country_name_altern,

@@ -1,11 +1,11 @@
 #### RUN THE FLU MODEL ####
 
 # key outputs: vaccine_programs, vacc_type_list
-source(here::here('next_gen_flu','vacc_types.R'))
+source(here::here('vacc_types.R'))
 # will calculate weekly age- and vaccine-specific population, also loads transmission model
-source(here::here('next_gen_flu','functions','demography.R'))
+source(here::here('functions','demography.R'))
 # runs the flu model
-source(here::here('next_gen_flu','functions','flu_sim.R'))
+source(here::here('functions','flu_sim.R'))
 
 #### FUNCTION TO RUN ####
 ## only input is vaccine type, to parallelise over vt ##
@@ -69,17 +69,17 @@ flu_parallel <- function(vaccine_type){
       mf_output <- rbind(mf_output, mf_output_si)
     }
     
-    if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
-      dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
-    }
+    # if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
+    #   dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
+    # }
     
     # print txt file to keep track of simulations
-    if(sim_index == 1 | sim_index %% 10 == 0){
-      writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
-                        ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
-                        ', total time on country = ', round(Sys.time() - total_start_time,2)),
-                 paste0('output/data/epi/',paste0(itz_input,'_text'),'/',paste0(vaccine_type, '_text.txt')))  
-    }
+    # if(sim_index == 1 | sim_index %% 10 == 0){
+    #   writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
+    #                     ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
+    #                     ', total time on country = ', round(Sys.time() - total_start_time,2)),
+    #              paste0('output/data/epi/',paste0(itz_input,'_text'),'/',paste0(vaccine_type, '_text.txt')))  
+    # }
     
   }
   

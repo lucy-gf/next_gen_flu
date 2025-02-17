@@ -1,7 +1,7 @@
 #### MAIN FLU SIMULATION FUNCTIONS ####
 
 library(countrycode)
-country_itzs_names <- data.table(read_csv('next_gen_flu/data/country_itzs_names.csv', show_col_types=F))
+country_itzs_names <- data.table(read_csv(here::here('data','country_itzs_names.csv'), show_col_types=F))
 country_itzs_names[codes=='TUR',country_altern_2 := 'Turkiye']
 
 ## function to simulate one epidemic
