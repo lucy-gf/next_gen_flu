@@ -28,18 +28,21 @@ vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 ################################################
 
 #### load vaccine types ####
-source(here::here('vacc_types.R'))
+source(here::here('functions/vacc_types.R'))
 
 #### load flu functions ####
-source(here::here('flu_parallel.R'))
+source(here::here('functions/flu_parallel.R'))
 
 #### read in test epidemics ####
 iso3c_input <- 'GBR'; itz_input <- 'GBR'
 hemisphere_input <- 'NH' # North because using GBR data here
-epid_dt <<- data.table(read_csv(here::here('data','test_epids.csv'), show_col_types=F))
+epid_dt <- data.table(read_csv(here::here('data','test_epids.csv'), show_col_types=F))
 
 #### read in test doses ####
-doses <<- data.table(read_csv(here::here('data','test_doses.csv'), show_col_types=F))
+doses <- data.table(read_csv(here::here('data','test_doses.csv'), show_col_types=F))
+
+#### choose vaccine variable ####
+vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
 
 ageing_date <<- ifelse(hemisphere_input=='NH', key_dates[1], key_dates[2])
 ageing_day <<- as.numeric(substr(ageing_date, 1, 2))
@@ -73,7 +76,6 @@ infs_out %>%
   scale_fill_manual(values = vtn_colors) +
   ylab('Infections (millions)') +
   facet_wrap(vacc_type~.)
-
 
 
 
