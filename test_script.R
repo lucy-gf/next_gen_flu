@@ -27,9 +27,6 @@ vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 ################################################
 ################################################
 
-#### load vaccine types ####
-source(here::here('functions/vacc_types.R'))
-
 #### load flu functions ####
 source(here::here('functions/flu_parallel.R'))
 
@@ -38,11 +35,27 @@ iso3c_input <- 'GBR'; itz_input <- 'GBR'
 hemisphere_input <- 'NH' # North because using GBR data here
 epid_dt <- data.table(read_csv(here::here('data','test_epids.csv'), show_col_types=F))
 
-#### read in test doses ####
-doses <- data.table(read_csv(here::here('data','test_doses.csv'), show_col_types=F))
-
 #### choose vaccine variable ####
-vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
+vaccine_variable <- c('doses','coverage')[1] # using MMGH doses or % coverage?
+
+#### define coverage if using ####
+if(vaccine_variable == 'coverage'){
+  
+  # define percentage coverage intended
+  cov_val <- 0.5
+  
+  # define age groups targeted, e.g. here <10yos and 65+yos
+  cov_ages <- c(0:10, 65:101)
+    
+  # what % coverage in each model age group?
+  cov_vec <- coverage_vector(cov_ages, cov_val, model_age_groups)
+  
+}else{
+  
+  #### read in test doses ####
+  doses <- data.table(read_csv(here::here('data','test_doses.csv'), show_col_types=F))
+  
+}
 
 ageing_date <<- ifelse(hemisphere_input=='NH', key_dates[1], key_dates[2])
 ageing_day <<- as.numeric(substr(ageing_date, 1, 2))
@@ -75,8 +88,19 @@ infs_out %>%
   theme_bw() + scale_color_manual(values = vtn_colors) +
   scale_fill_manual(values = vtn_colors) +
   ylab('Infections (millions)') +
-  facet_wrap(vacc_type~.)
+  facet_wrap(vacc_type~.) + theme(legend.position = 'none')
 
-
+infs_out %>% 
+  group_by(time,vacc_type) %>% 
+  summarise(med = median(tot),
+            eti95L = quantile(tot, 0.025),
+            eti95U = quantile(tot, 0.975)) %>% 
+  ggplot() +
+  geom_ribbon(aes(time, ymin=eti95L/1e6, ymax=eti95U/1e6,
+                  fill = vacc_type), alpha=0.4) +
+  geom_line(aes(time, med/1e6, col=vacc_type),lwd=0.8) +
+  theme_bw() + scale_color_manual(values = vtn_colors) +
+  scale_fill_manual(values = vtn_colors) +
+  ylab('Infections (millions)') + theme(legend.position = 'none')
 
 

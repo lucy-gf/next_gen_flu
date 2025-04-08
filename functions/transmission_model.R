@@ -16,7 +16,8 @@ incidence_VS <- function(
     begin_date, 
     end_date, 
     age_groups_model,
-    vacc_rel_inf
+    vacc_rel_inf,
+    vaccine_var_in
 ){
   
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
@@ -69,7 +70,8 @@ incidence_VS <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    vacc_rel_inf = vacc_rel_inf
+    vacc_rel_inf = vacc_rel_inf,
+    V_V = ifelse(vaccine_var_in == 'doses', 1, 0)
   )
   
   # run the model
@@ -99,6 +101,10 @@ incidence_VS <- function(
 
 #### ODIN MODEL ####
 flu_odin <- odin::odin({
+  # vaccination variable, 
+  # 1 = doses, 0 = coverage
+  V_V <- user()
+  
   # Number of groups
   no_groups <- user()
   
@@ -146,11 +152,11 @@ flu_odin <- odin::odin({
   vI[] <- interpolate(dates, calendar, "constant")
   
   sumN[] <- if (vI[i]>0) (S[i]+E1[i]+E2[i]+I1[i]+I2[i]+R[i]) else 0
-  # v[] <- if (sumN[i]>0) (1 - ((1 - vI[i])/(sumN[i]/pop[i]))) else 0
-  # updated version, for doses instead of coverage
-  v[] <- if (sumN[i]/pop[i] > vI[i]) vI[i]/(7*sumN[i]/pop[i]) else 0
-  # do not vaccinate if the intended weekly coverage is higher than the
-  # proportion of the age group who are susceptible
+  
+  # vaccination function
+  # with weird binary fix as there is no if/elif/else in odin
+  # v[] <- if (sumN[i]>0 & V_V == 'coverage')(1 - ((1 - vI[i])/(sumN[i]/pop[i]))) else if (sumN[i]/pop[i] > vI[i] & V_V == 'doses') vI[i]/(7*sumN[i]/pop[i]) else 0
+  v[] <- if(sumN[i]/pop[i] > vI[i]) (1 - V_V)*(1 - ((1 - vI[i])/(sumN[i]/pop[i]))) + (V_V)*(vI[i]/(7*sumN[i]/pop[i])) else 0
   
   # Transmission matrix
   sij[,] <- cij[i,j] * (I1[j] + I2[j] + vacc_rel_inf*(I1v[j] + I2v[j]))
@@ -243,6 +249,7 @@ flu_odin <- odin::odin({
   dim(newInf) <- no_groups
   dim(newInfv) <- no_groups
   dim(VT) <- no_groups
+
 })
 
 #### VACCINATION-SPECIFIC DEMOGRAPHY ####
@@ -258,7 +265,8 @@ fcn_vaccinated_demography <- function(
     begin_date, 
     end_date, 
     age_groups_model,
-    vacc_rel_inf = 1
+    vacc_rel_inf = 1,
+    vaccine_var_in
 ){
 
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
@@ -304,7 +312,8 @@ fcn_vaccinated_demography <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    vacc_rel_inf = vacc_rel_inf
+    vacc_rel_inf = vacc_rel_inf,
+    V_V = ifelse(vaccine_var_in == 'doses', 1, 0)
   )
   
   # run the model
@@ -337,7 +346,8 @@ fcn_vaccinated_demography_doses <- function(
     begin_date, 
     end_date, 
     age_groups_model,
-    vacc_rel_inf = 1
+    vacc_rel_inf = 1,
+    vaccine_var_in 
 ){
   
   if(sum(rowSums(calendar_input$calendar) > 0) > 1){
@@ -387,7 +397,8 @@ fcn_vaccinated_demography_doses <- function(
     calendar = matrix(calendar_input$calendar, ncol = 4*3),
     gamma1 = 2/infection_delays[1],
     gamma2 = 2/infection_delays[2], 
-    vacc_rel_inf = vacc_rel_inf
+    vacc_rel_inf = vacc_rel_inf,
+    V_V = ifelse(vaccine_var_in == 'doses', 1, 0)
   )
   
   # run the model
