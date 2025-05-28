@@ -692,7 +692,7 @@ fcn_annual_doses <- function(country,
   }
   imm_dur_vec <- as.numeric(imm_dur_vec)
   waning_vec <- 1/(365*imm_dur_vec)
-  waning_dt <- data.table(year = demographic_start_year:(max(doses$year)),
+  waning_dt <- data.table(year = demographic_start_year:(demographic_start_year + length(vaccine_used) - 1),
                           waning = waning_vec,
                           vacc = vaccine_used)
   
@@ -949,6 +949,7 @@ fcn_annual_doses <- function(country,
         calendar_input <- dfn_vaccine_calendar_doses(
           vacc_cov = c(0,0,0,0),
           dates_to_run = dates_to_run,
+          key_vacc_date_full = action_week,
           efficacy = efficacy_input,
           no_age_groups = length(start_pop),
           no_risk_groups = 1,

@@ -36,7 +36,7 @@ hemisphere_input <- 'NH' # North because using GBR data here
 epid_dt <- data.table(read_csv(here::here('data','test_epids.csv'), show_col_types=F))
 
 #### choose vaccine variable ####
-vaccine_variable <- c('doses','coverage')[1] # using MMGH doses or % coverage?
+vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
 
 #### define coverage if using ####
 if(vaccine_variable == 'coverage'){
@@ -104,3 +104,24 @@ infs_out %>%
   ylab('Infections (millions)') + theme(legend.position = 'none')
 
 
+
+## doses
+
+doses_check <- flu_doses(
+    country = 'GBR',
+    ageing = T, 
+    ageing_date = '01-04',
+    epid_inputs = epid_dt[simulation_index==1],
+    vaccine_program = 1,
+    m_a_g = model_age_groups
+    )
+ggplot(doses_check) + geom_line(aes(year, vaccs, col = age_grp))
+
+
+
+
+
+
+  
+  
+  

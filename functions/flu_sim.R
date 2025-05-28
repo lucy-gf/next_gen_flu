@@ -494,11 +494,21 @@ flu_doses <- function(
     ageing_date = NULL, # e.g. '01-04'
     epid_inputs, # data.table of vectors of inputs for one_flu
     vaccine_program,
-    model_age_groups){
+    m_a_g){
   
   dates_many_flu <- seq.Date(last_monday(min(epid_inputs$period_start_date)), 
                              last_monday(max(epid_inputs$end_date)), 
                              by=7)
+  
+  vacc_name <- names(vacc_type_list)[vaccine_type]
+  
+  vaccine_used_vec <- if(vaccine_variable == 'doses'){
+    # if using doses, NGIVs are often introduced years after the start of the epidemic period
+    doses[vacc_scenario == vacc_name & model_age_group==1]$vacc_used
+  }else{
+    # if using coverage, assuming NGIVs available each year (adjust here if not!)
+    rep(vacc_name, (year(epid_dt$end_date[1]) - year(epid_dt$period_start_date[1])))
+  }
   
   doses <- fcn_annual_doses(
     country,
@@ -506,9 +516,12 @@ flu_doses <- function(
     ageing_date,
     dates_in = dates_many_flu,
     demographic_start_year = year(min(epid_inputs$period_start_date)),
-    vaccine_program,
+    vaccine_used = vaccine_used_vec,
+    vaccine_var = vaccine_variable,
+    doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
+    vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
     init_vaccinated = c(0,0,0,0),
-    model_age_groups
+    model_age_groups = m_a_g
   )
   
   doses
