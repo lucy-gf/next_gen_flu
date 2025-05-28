@@ -502,7 +502,7 @@ flu_doses <- function(
   
   doses <- fcn_annual_doses(
     country,
-    ageing = T,
+    ageing,
     ageing_date,
     dates_in = dates_many_flu,
     demographic_start_year = year(min(epid_inputs$period_start_date)),
