@@ -350,10 +350,6 @@ fcn_vaccinated_demography_doses <- function(
     vaccine_var_in 
 ){
   
-  if(sum(rowSums(calendar_input$calendar) > 0) > 1){
-    calendar_input$calendar[1:sum(rowSums(calendar_input$calendar) > 0),] <- calendar_input$calendar[rep(seq_len(1), each = sum(rowSums(calendar_input$calendar) > 0)), ]
-  }
-  
   risk_ratios_input <- matrix(c(rep(0,8)), ncol = 4 , byrow = T) # not using risk groups 
   population_stratified <- stratify_by_risk(demography_input, risk_ratios_input)
   
